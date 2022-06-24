@@ -1,9 +1,14 @@
 import "./App.css";
 import {
+  Avatar,
   Button,
   Grid,
   ImageList,
   ImageListItem,
+  List,
+  ListItem,
+  ListItemAvatar,
+  ListItemText,
   Paper,
   Table,
   TableBody,
@@ -37,6 +42,15 @@ function App() {
     setItems(items.filter((item, i) => i !== index));
     setTotal(total - items[index].subtotal);
   };
+
+  var formatter = new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+
+    // These options are needed to round to whole numbers if that's what you want.
+    //minimumFractionDigits: 0, // (this suffices for whole numbers, but will print 2500.10 as $2,500.1)
+    //maximumFractionDigits: 0, // (causes 2500.99 to be printed as $2,501)
+  });
   return (
     <div className="App">
       <Grid
@@ -56,25 +70,40 @@ function App() {
           }}
         >
           <Paper>
-            <ImageList
+            <List
               sx={{ width: "100%", height: "100%", overflow: "auto" }}
               cols={3}
               rowHeight={100}
             >
               {itemData.map((item, index) => (
-                <ImageListItem key={item.title}>
-                  <img
-                    onClick={() => {
-                      addItem(index);
+                <ListItem>
+                  <ListItemAvatar key={item.title}>
+                    <Avatar
+                      variant="rounded"
+                      src={item.img}
+                      onClick={() => {
+                        addItem(index);
+                      }}
+                      sx={{
+                        height: 100,
+                        width: 100,
+                      }}
+                    />
+                  </ListItemAvatar>
+                  <ListItemText
+                    style={{
+                      paddingLeft: 10,
                     }}
-                    src={`${item.img}?w=164&h=164&fit=crop&auto=format`}
-                    srcSet={`${item.img}?w=164&h=164&fit=crop&auto=format&dpr=2 2x`}
-                    alt={item.title}
-                    loading="lazy"
+                    primary={<Typography variant="h5">{item.title}</Typography>}
+                    secondary={
+                      <Typography variant="body1">
+                        {formatter.format(item.price)}
+                      </Typography>
+                    }
                   />
-                </ImageListItem>
+                </ListItem>
               ))}
-            </ImageList>
+            </List>
           </Paper>
         </Grid>
         <Grid item xs={8}>
