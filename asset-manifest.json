@@ -1,10 +1,10 @@
 {
   "files": {
-    "main.js": "/Cashier-App/static/js/main.3ff2184c.js",
+    "main.js": "/Cashier-App/static/js/main.611e7f52.js",
     "index.html": "/Cashier-App/index.html",
-    "main.3ff2184c.js.map": "/Cashier-App/static/js/main.3ff2184c.js.map"
+    "main.611e7f52.js.map": "/Cashier-App/static/js/main.611e7f52.js.map"
   },
   "entrypoints": [
-    "static/js/main.3ff2184c.js"
+    "static/js/main.611e7f52.js"
   ]
 }

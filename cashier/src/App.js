@@ -20,22 +20,6 @@ import {
 import { Delete } from "@mui/icons-material";
 import { useState } from "react";
 
-const theme = createTheme({
-  status: {
-    danger: "#FF6D53",
-  },
-  palette: {
-    primary: {
-      main: "#0971f1",
-      darker: "#053e85",
-    },
-    neutral: {
-      main: "#64748B",
-      contrastText: "#fff",
-    },
-  },
-});
-
 function App() {
   const [items, setItems] = useState([]);
   const [total, setTotal] = useState(0);
@@ -67,9 +51,9 @@ function App() {
   });
   return (
     <div
-      className="App"
+      className="app"
       style={{
-        backgroundColor: "#eefff3",
+        backgroundColor: "#ffe9e5",
       }}
     >
       <Grid
@@ -126,11 +110,17 @@ function App() {
                         display: "-webkit-box",
                         "-webkit-line-clamp": 3,
                         "-webkit-box-orient": "vertical",
+                        color: "#BB6750",
                       }}
                     >
                       {item.title}
                     </Typography>
-                    <Typography variant="body2" color="text.secondary">
+                    <Typography
+                      variant="body2"
+                      style={{
+                        color: "#F7B09D",
+                      }}
+                    >
                       {formatter.format(item.price)}
                     </Typography>
                   </CardContent>
@@ -155,14 +145,72 @@ function App() {
               }}
             >
               <Table sx={{}} aria-label="simple table" size="small">
-                <TableHead>
+                <TableHead
+                  style={{
+                    backgroundColor: "#FF907C",
+                  }}
+                >
                   <TableRow>
-                    <TableCell>Img</TableCell>
-                    <TableCell align="right">Name</TableCell>
-                    <TableCell align="right">Price</TableCell>
-                    <TableCell align="right">Qty</TableCell>
-                    <TableCell align="right">Remove</TableCell>
-                    <TableCell align="right">Subtotal</TableCell>
+                    <TableCell>
+                      <Typography
+                        variant="h6"
+                        style={{
+                          color: "white",
+                        }}
+                      >
+                        Icon
+                      </Typography>
+                    </TableCell>
+                    <TableCell align="left">
+                      <Typography
+                        variant="h6"
+                        style={{
+                          color: "white",
+                        }}
+                      >
+                        Name
+                      </Typography>
+                    </TableCell>
+                    <TableCell align="right">
+                      <Typography
+                        variant="h6"
+                        style={{
+                          color: "white",
+                        }}
+                      >
+                        Price
+                      </Typography>
+                    </TableCell>
+                    <TableCell align="right">
+                      <Typography
+                        variant="h6"
+                        style={{
+                          color: "white",
+                        }}
+                      >
+                        Qty
+                      </Typography>
+                    </TableCell>
+                    <TableCell align="right">
+                      <Typography
+                        variant="h6"
+                        style={{
+                          color: "white",
+                        }}
+                      >
+                        Remove
+                      </Typography>
+                    </TableCell>
+                    <TableCell align="right">
+                      <Typography
+                        variant="h6"
+                        style={{
+                          color: "white",
+                        }}
+                      >
+                        Subtotal
+                      </Typography>
+                    </TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -171,29 +219,49 @@ function App() {
                       key={row.name}
                       sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
                     >
-                      <TableCell>
-                        <img
-                          src={`${row.img}?w=40&h=40&fit=crop&auto=format`}
-                          srcSet={`${row.img}?w=40&h=40&fit=crop&auto=format&dpr=2 2x`}
-                          alt={row.title}
-                          style={{
-                            width: 40,
-                            height: 40,
-                          }}
-                          loading="lazy"
-                        />
+                      <TableCell align="left">
+                        <Avatar src={row.img} variant="rounded" />
                       </TableCell>
-                      <TableCell align="right">{row.title}</TableCell>
-                      <TableCell align="right">
+                      <TableCell
+                        align="left"
+                        style={{
+                          color: "#BB6750",
+                        }}
+                      >
+                        {row.title}
+                      </TableCell>
+                      <TableCell
+                        align="right"
+                        style={{
+                          color: "#BB6750",
+                        }}
+                      >
                         {formatter.format(row.price)}
                       </TableCell>
-                      <TableCell align="right">{row.qty}</TableCell>
+                      <TableCell
+                        align="right"
+                        style={{
+                          color: "#BB6750",
+                        }}
+                      >
+                        {row.qty}
+                      </TableCell>
                       <TableCell align="right">
-                        <Button onClick={() => removeItem(index)} color="error">
+                        <Button
+                          onClick={() => removeItem(index)}
+                          style={{
+                            color: "#BB6750",
+                          }}
+                        >
                           <Delete />
                         </Button>
                       </TableCell>
-                      <TableCell align="right">
+                      <TableCell
+                        align="right"
+                        style={{
+                          color: "#BB6750",
+                        }}
+                      >
                         {formatter.format(row.subtotal)}
                       </TableCell>
                     </TableRow>
@@ -210,7 +278,7 @@ function App() {
               }}
             >
               <Button
-                variant="outlined"
+                variant="contained"
                 onClick={() => {
                   resetItems();
                 }}
@@ -228,7 +296,12 @@ function App() {
                   borderRadius: "10px",
                 }}
               >
-                <Typography variant="h3">
+                <Typography
+                  variant="h3"
+                  style={{
+                    color: "#BB6750",
+                  }}
+                >
                   Total: {formatter.format(total)}
                 </Typography>
               </Paper>
