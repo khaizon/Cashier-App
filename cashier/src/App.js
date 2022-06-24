@@ -5,6 +5,7 @@ import {
   CardActionArea,
   CardContent,
   CardMedia,
+  createTheme,
   Grid,
   Paper,
   Table,
@@ -18,6 +19,22 @@ import {
 
 import { Delete } from "@mui/icons-material";
 import { useState } from "react";
+
+const theme = createTheme({
+  status: {
+    danger: "#FF6D53",
+  },
+  palette: {
+    primary: {
+      main: "#0971f1",
+      darker: "#053e85",
+    },
+    neutral: {
+      main: "#64748B",
+      contrastText: "#fff",
+    },
+  },
+});
 
 function App() {
   const [items, setItems] = useState([]);
@@ -49,7 +66,12 @@ function App() {
     //maximumFractionDigits: 0, // (causes 2500.99 to be printed as $2,501)
   });
   return (
-    <div className="App">
+    <div
+      className="App"
+      style={{
+        backgroundColor: "#eefff3",
+      }}
+    >
       <Grid
         container
         spacing={2}
@@ -60,7 +82,7 @@ function App() {
       >
         <Grid
           item
-          xs={4}
+          xs={5}
           style={{
             height: "100%",
             overflow: "auto",
@@ -71,13 +93,14 @@ function App() {
               display: "flex",
               flexWrap: "wrap",
               justifyContent: "space-around",
-              gap: "1rem",
+              gap: "10px",
+              padding: "10px",
             }}
           >
             {itemData.map((item, index) => (
               <Card
                 style={{
-                  flex: "1 0 41%",
+                  flex: "1 0 29%",
                 }}
               >
                 <CardActionArea
@@ -87,12 +110,24 @@ function App() {
                 >
                   <CardMedia
                     component="img"
-                    height={window.innerWidth * 0.15}
+                    height={window.innerWidth * 0.1}
                     image={item.img}
                     alt="green iguana"
                   />
                   <CardContent>
-                    <Typography gutterBottom variant="h6" component="div">
+                    <Typography
+                      gutterBottom
+                      variant="body1"
+                      component="div"
+                      style={{
+                        // wordBreak: "break-word",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        display: "-webkit-box",
+                        "-webkit-line-clamp": 3,
+                        "-webkit-box-orient": "vertical",
+                      }}
+                    >
                       {item.title}
                     </Typography>
                     <Typography variant="body2" color="text.secondary">
@@ -104,7 +139,7 @@ function App() {
             ))}
           </Paper>
         </Grid>
-        <Grid item xs={8}>
+        <Grid item xs={7}>
           <div
             style={{
               display: "flex",
@@ -149,14 +184,18 @@ function App() {
                         />
                       </TableCell>
                       <TableCell align="right">{row.title}</TableCell>
-                      <TableCell align="right">{row.price}</TableCell>
+                      <TableCell align="right">
+                        {formatter.format(row.price)}
+                      </TableCell>
                       <TableCell align="right">{row.qty}</TableCell>
                       <TableCell align="right">
-                        <Button onClick={() => removeItem(index)}>
+                        <Button onClick={() => removeItem(index)} color="error">
                           <Delete />
                         </Button>
                       </TableCell>
-                      <TableCell align="right">{row.subtotal}</TableCell>
+                      <TableCell align="right">
+                        {formatter.format(row.subtotal)}
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -166,6 +205,7 @@ function App() {
               style={{
                 display: "flex",
                 justifyContent: "space-between",
+                alignItems: "flex-end",
                 margin: 20,
               }}
             >
@@ -174,10 +214,24 @@ function App() {
                 onClick={() => {
                   resetItems();
                 }}
+                style={{
+                  width: "40%",
+                  height: "50px",
+                }}
+                color="error"
               >
                 Reset
               </Button>
-              <Typography variant="h3">Total: {total}</Typography>
+              <Paper
+                style={{
+                  padding: "20px",
+                  borderRadius: "10px",
+                }}
+              >
+                <Typography variant="h3">
+                  Total: {formatter.format(total)}
+                </Typography>
+              </Paper>
             </div>
           </div>
         </Grid>
@@ -216,12 +270,12 @@ const itemData = [
   },
   {
     img: "./images/keychain8.jpg",
-    title: "Key Chain (MaoDonalds)",
+    title: "KeyChain (MaoDonalds)",
     price: 8,
   },
   {
     img: "./images/keychain9.jpg",
-    title: "Key Chain (Milk/Bread)",
+    title: "KeyChain (Milk/Bread)",
     price: 9,
   },
   {
