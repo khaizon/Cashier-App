@@ -1,5 +1,6 @@
 import {
   Avatar,
+  Box,
   Button,
   Card,
   CardActionArea,
@@ -200,7 +201,7 @@ function App() {
                           Price
                         </Typography>
                       </TableCell>
-                      <TableCell align="right">
+                      <TableCell align="center">
                         <Typography
                           variant="h6"
                           style={{
@@ -210,14 +211,14 @@ function App() {
                           Qty
                         </Typography>
                       </TableCell>
-                      <TableCell align="right">
+                      <TableCell align="center">
                         <Typography
                           variant="h6"
                           style={{
                             color: "white",
                           }}
                         >
-                          Remove
+                          Del
                         </Typography>
                       </TableCell>
                       <TableCell align="right">
@@ -267,14 +268,36 @@ function App() {
                           {formatter.format(row.price)}
                         </TableCell>
                         <TableCell
-                          align="right"
+                          align="center"
                           style={{
-                            color: "#BB6750",
+                            color: row.qty > 1 ? "white" : "#BB6750",
                           }}
                         >
-                          {row.qty}
+                          <div
+                            style={{
+                              display: "flex",
+                              alignItems: "stretch",
+                              justifyContent: "center",
+                            }}
+                          >
+                            <Box
+                              style={{
+                                height: "40px",
+                                width: "40px",
+                                backgroundColor: row.qty > 1 ? "#ffc6bd" : "white",
+                                borderRadius: 7,
+                                display: "flex",
+                                justifyContent: "center",
+                                alignItems: "center",
+                              }}
+                            >
+                              <Typography variant={row.qty > 1 ? "h5" : "body1"}>
+                                {row.qty}
+                              </Typography>
+                            </Box>
+                          </div>
                         </TableCell>
-                        <TableCell align="right">
+                        <TableCell align="center">
                           <Button
                             onClick={() => removeItem(index)}
                             style={{
