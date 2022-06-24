@@ -7,7 +7,6 @@ import {
   CardContent,
   CardMedia,
   Grid,
-  IconButton,
   Modal,
   Paper,
   Table,
@@ -19,7 +18,7 @@ import {
   Typography,
 } from "@mui/material";
 
-import { Delete, PlusOne } from "@mui/icons-material";
+import { Delete } from "@mui/icons-material";
 import { useState } from "react";
 import useWindowDimensions from "./hooks/useWindowDimensions";
 
@@ -412,7 +411,8 @@ function App() {
               }}
               style={{
                 backgroundColor: "#ffc6bd",
-                color: "white",
+                color: "#BB6750",
+                fontSize: "1rem",
               }}
             >
               Reset
@@ -420,7 +420,7 @@ function App() {
             <Typography
               variant="h5"
               style={{
-                color: "#BB6750",
+                color: "#ef476f",
               }}
             >
               Received
@@ -432,9 +432,9 @@ function App() {
               }}
             >
               <Typography
-                variant="h6"
+                variant="h5"
                 style={{
-                  color: "#606c38",
+                  color: "#ef476f",
                 }}
               >
                 {formatter.format(received)}
@@ -529,7 +529,14 @@ function App() {
               marginTop: 20,
             }}
           >
-            <Typography variant="h5">Less</Typography>
+            <Typography
+              variant="h5"
+              style={{
+                color: "#BB6750",
+              }}
+            >
+              Less
+            </Typography>
             <Paper
               style={{
                 padding: "10px",
@@ -554,7 +561,14 @@ function App() {
               marginTop: 20,
             }}
           >
-            <Typography variant="h5">Change</Typography>
+            <Typography
+              variant="h5"
+              style={{
+                color: "#606c38",
+              }}
+            >
+              Change
+            </Typography>
             <Paper
               style={{
                 padding: "10px",
