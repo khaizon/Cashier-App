@@ -7,6 +7,8 @@ import {
   CardContent,
   CardMedia,
   Grid,
+  IconButton,
+  Modal,
   Paper,
   Table,
   TableBody,
@@ -17,14 +19,34 @@ import {
   Typography,
 } from "@mui/material";
 
-import { Delete } from "@mui/icons-material";
+import { Delete, PlusOne } from "@mui/icons-material";
 import { useState } from "react";
 import useWindowDimensions from "./hooks/useWindowDimensions";
+
+const modalStyle = {
+  position: "absolute",
+  top: "50%",
+  left: "50%",
+  transform: "translate(-50%, -50%)",
+  height: 300,
+  width: 300,
+  bgcolor: "#ffe9e5",
+  borderRadius: 3,
+  boxShadow: 24,
+  p: 4,
+};
 
 function App() {
   const [items, setItems] = useState([]);
   const [total, setTotal] = useState(0);
+  const [received, setReceived] = useState(0);
   const { height, width } = useWindowDimensions();
+
+  // modal
+  const [open, setOpen] = useState(false);
+  const handleOpen = () => setOpen(true);
+  const handleClose = () => setOpen(false);
+
   const addItem = (index) => {
     let foundDuplicate = false;
     for (let i = 0; i < items.length; i += 1) {
@@ -58,6 +80,10 @@ function App() {
   const removeItem = (index) => {
     setItems(items.filter((item, i) => i !== index));
     setTotal(total - items[index].subtotal);
+  };
+
+  const addReceived = (amt) => {
+    setReceived(received + amt);
   };
 
   var formatter = new Intl.NumberFormat("en-US", {
@@ -155,13 +181,14 @@ function App() {
                 display: "flex",
                 flexDirection: "column",
                 justifyContent: "space-between",
+                gap: 10,
                 height: "100%",
               }}
             >
               <TableContainer
                 component={Paper}
                 style={{
-                  maxHeight: height - 200,
+                  maxHeight: height - 150,
                 }}
               >
                 <Table sx={{}} aria-label="simple table" size="small">
@@ -325,7 +352,7 @@ function App() {
                   display: "flex",
                   justifyContent: "space-between",
                   alignItems: "flex-end",
-                  margin: 20,
+                  margin: 10,
                 }}
               >
                 <Button
@@ -344,9 +371,10 @@ function App() {
                 </Button>
                 <Paper
                   style={{
-                    padding: "20px",
+                    padding: "10px",
                     borderRadius: "10px",
                   }}
+                  onClick={handleOpen}
                 >
                   <Typography
                     variant="h3"
@@ -362,6 +390,189 @@ function App() {
           </Grid>
         </Grid>
       </div>
+      <Modal
+        open={open}
+        onClose={handleClose}
+        aria-labelledby="modal-modal-title"
+        aria-describedby="modal-modal-description"
+      >
+        <Box sx={modalStyle}>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              paddingBottom: 20,
+            }}
+          >
+            <Button
+              variant="contained"
+              onClick={() => {
+                setReceived(0);
+              }}
+              style={{
+                backgroundColor: "#ffc6bd",
+                color: "white",
+              }}
+            >
+              Reset
+            </Button>
+            <Typography
+              variant="h5"
+              style={{
+                color: "#BB6750",
+              }}
+            >
+              Received
+            </Typography>
+            <Paper
+              style={{
+                padding: "5px",
+                borderRadius: "10px",
+              }}
+            >
+              <Typography
+                variant="h6"
+                style={{
+                  color: "#606c38",
+                }}
+              >
+                {formatter.format(received)}
+              </Typography>
+            </Paper>
+          </div>
+          <div
+            style={{
+              display: "flex",
+              gap: 5,
+              flexWrap: "wrap",
+            }}
+          >
+            <Button
+              variant="contained"
+              style={{
+                backgroundColor: "#FF907C",
+                flex: "1 0 21%",
+              }}
+              onClick={() => {
+                addReceived(50);
+              }}
+            >
+              50
+            </Button>
+            <Button
+              variant="contained"
+              style={{
+                backgroundColor: "#FF907C",
+                flex: "1 0 21%",
+              }}
+              onClick={() => {
+                addReceived(10);
+              }}
+            >
+              10
+            </Button>
+            <Button
+              variant="contained"
+              style={{
+                backgroundColor: "#FF907C",
+                flex: "1 0 21%",
+              }}
+              onClick={() => {
+                addReceived(5);
+              }}
+            >
+              5
+            </Button>
+            <Button
+              variant="contained"
+              style={{
+                backgroundColor: "#FF907C",
+                flex: "1 0 21%",
+              }}
+              onClick={() => {
+                addReceived(2);
+              }}
+            >
+              2
+            </Button>
+            <Button
+              variant="contained"
+              style={{
+                backgroundColor: "#FF907C",
+                flex: "1 0 31%",
+              }}
+              onClick={() => {
+                addReceived(0.5);
+              }}
+            >
+              + 0.50
+            </Button>
+            <Button
+              variant="contained"
+              style={{
+                backgroundColor: "#FF907C",
+                flex: "1 0 31%",
+              }}
+              onClick={() => {
+                addReceived(-0.5);
+              }}
+            >
+              - 0.50
+            </Button>
+          </div>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              marginTop: 20,
+            }}
+          >
+            <Typography variant="h5">Less</Typography>
+            <Paper
+              style={{
+                padding: "10px",
+                borderRadius: "10px",
+              }}
+            >
+              <Typography
+                variant="h5"
+                style={{
+                  color: "#BB6750",
+                }}
+              >
+                &#40;{formatter.format(total)}&#41;
+              </Typography>
+            </Paper>
+          </div>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              marginTop: 20,
+            }}
+          >
+            <Typography variant="h5">Change</Typography>
+            <Paper
+              style={{
+                padding: "10px",
+                borderRadius: "10px",
+              }}
+            >
+              <Typography
+                variant="h4"
+                style={{
+                  color: "#606c38",
+                }}
+              >
+                {formatter.format(received - total)}
+              </Typography>
+            </Paper>
+          </div>
+        </Box>
+      </Modal>
     </div>
   );
 }
