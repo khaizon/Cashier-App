@@ -13,6 +13,8 @@ import {
   TableRow,
   Typography,
 } from "@mui/material";
+
+import { Delete } from "@mui/icons-material";
 import { useState } from "react";
 
 function App() {
@@ -29,6 +31,11 @@ function App() {
   const resetItems = () => {
     setItems([]);
     setTotal(0);
+  };
+
+  const removeItem = (index) => {
+    setItems(items.filter((item, i) => i !== index));
+    setTotal(total - items[index].subtotal);
   };
   return (
     <div className="App">
@@ -92,11 +99,12 @@ function App() {
                     <TableCell align="right">Name</TableCell>
                     <TableCell align="right">Price</TableCell>
                     <TableCell align="right">Qty</TableCell>
+                    <TableCell align="right">Remove</TableCell>
                     <TableCell align="right">Subtotal</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {items.map((row) => (
+                  {items.map((row, index) => (
                     <TableRow
                       key={row.name}
                       sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
@@ -116,6 +124,11 @@ function App() {
                       <TableCell align="right">{row.title}</TableCell>
                       <TableCell align="right">{row.price}</TableCell>
                       <TableCell align="right">{row.qty}</TableCell>
+                      <TableCell align="right">
+                        <Button onClick={() => removeItem(index)}>
+                          <Delete />
+                        </Button>
+                      </TableCell>
                       <TableCell align="right">{row.subtotal}</TableCell>
                     </TableRow>
                   ))}
