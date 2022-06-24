@@ -18,15 +18,34 @@ import {
 
 import { Delete } from "@mui/icons-material";
 import { useState } from "react";
+import useWindowDimensions from "./hooks/useWindowDimensions";
 
 function App() {
   const [items, setItems] = useState([]);
   const [total, setTotal] = useState(0);
+  const { height, width } = useWindowDimensions();
   const addItem = (index) => {
-    setItems([
-      ...items,
-      { ...itemData[index], qty: 1, subtotal: itemData[index].price },
-    ]);
+    let foundDuplicate = false;
+    for (let i = 0; i < items.length; i += 1) {
+      if (items[i].title === itemData[index].title) {
+        foundDuplicate = true;
+        break;
+      }
+    }
+    if (foundDuplicate) {
+      setItems(
+        items.map((item) => {
+          if (item.title === itemData[index].title) {
+            item.qty += 1;
+            item.subtotal += item.price;
+          }
+          return item;
+        })
+      );
+    } else {
+      setItems([...items, { ...itemData[index], qty: 1, subtotal: itemData[index].price }]);
+    }
+
     setTotal(total + itemData[index].price);
   };
 
@@ -68,16 +87,14 @@ function App() {
             item
             xs={5}
             style={{
-              height: "100%",
               overflow: "auto",
-              height: window.innerHeight,
+              height: height,
             }}
           >
             <Paper
               style={{
                 display: "flex",
                 flexWrap: "wrap",
-                // justifyContent: "space-around",
                 gap: "10px",
                 padding: "10px",
                 borderRadius: "15px",
@@ -96,7 +113,7 @@ function App() {
                   >
                     <CardMedia
                       component="img"
-                      height={window.innerWidth * 0.1}
+                      height={width * 0.1}
                       image={item.img}
                       alt="green iguana"
                     />
@@ -110,8 +127,8 @@ function App() {
                           overflow: "hidden",
                           textOverflow: "ellipsis",
                           display: "-webkit-box",
-                          "-webkit-line-clamp": 3,
-                          "-webkit-box-orient": "vertical",
+                          WebkitLineClamp: 3,
+                          WebkitBoxOrient: "vertical",
                           color: "#BB6750",
                         }}
                       >
@@ -143,7 +160,7 @@ function App() {
               <TableContainer
                 component={Paper}
                 style={{
-                  maxHeight: window.innerHeight - 200,
+                  maxHeight: height - 200,
                 }}
               >
                 <Table sx={{}} aria-label="simple table" size="small">
@@ -224,7 +241,14 @@ function App() {
                         }}
                       >
                         <TableCell align="left">
-                          <Avatar src={row.img} variant="rounded" />
+                          <Avatar
+                            src={row.img}
+                            variant="rounded"
+                            sx={{
+                              width: 60,
+                              height: 60,
+                            }}
+                          />
                         </TableCell>
                         <TableCell
                           align="left"
