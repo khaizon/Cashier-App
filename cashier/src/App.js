@@ -5,7 +5,6 @@ import {
   CardActionArea,
   CardContent,
   CardMedia,
-  createTheme,
   Grid,
   Paper,
   Table,
@@ -54,262 +53,268 @@ function App() {
       className="app"
       style={{
         backgroundColor: "#ffe9e5",
+        padding: "10px",
       }}
     >
-      <Grid
-        container
-        spacing={2}
-        style={{
-          height: window.innerHeight,
-          overflow: "auto",
-        }}
-      >
+      <div>
         <Grid
-          item
-          xs={5}
+          container
+          spacing={2}
           style={{
-            height: "100%",
             overflow: "auto",
           }}
         >
-          <Paper
+          <Grid
+            item
+            xs={5}
             style={{
-              display: "flex",
-              flexWrap: "wrap",
-              justifyContent: "space-around",
-              gap: "10px",
-              padding: "10px",
-            }}
-          >
-            {itemData.map((item, index) => (
-              <Card
-                style={{
-                  flex: "1 0 29%",
-                }}
-              >
-                <CardActionArea
-                  onClick={() => {
-                    addItem(index);
-                  }}
-                >
-                  <CardMedia
-                    component="img"
-                    height={window.innerWidth * 0.1}
-                    image={item.img}
-                    alt="green iguana"
-                  />
-                  <CardContent>
-                    <Typography
-                      gutterBottom
-                      variant="body1"
-                      component="div"
-                      style={{
-                        // wordBreak: "break-word",
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        display: "-webkit-box",
-                        "-webkit-line-clamp": 3,
-                        "-webkit-box-orient": "vertical",
-                        color: "#BB6750",
-                      }}
-                    >
-                      {item.title}
-                    </Typography>
-                    <Typography
-                      variant="body2"
-                      style={{
-                        color: "#F7B09D",
-                      }}
-                    >
-                      {formatter.format(item.price)}
-                    </Typography>
-                  </CardContent>
-                </CardActionArea>
-              </Card>
-            ))}
-          </Paper>
-        </Grid>
-        <Grid item xs={7}>
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              justifyContent: "space-between",
               height: "100%",
+              overflow: "auto",
+              height: window.innerHeight,
             }}
           >
-            <TableContainer
-              component={Paper}
+            <Paper
               style={{
-                maxHeight: window.innerHeight - 200,
+                display: "flex",
+                flexWrap: "wrap",
+                // justifyContent: "space-around",
+                gap: "10px",
+                padding: "10px",
+                borderRadius: "15px",
               }}
             >
-              <Table sx={{}} aria-label="simple table" size="small">
-                <TableHead
+              {itemData.map((item, index) => (
+                <Card
                   style={{
-                    backgroundColor: "#FF907C",
+                    flex: "1 0 130px",
                   }}
                 >
-                  <TableRow>
-                    <TableCell>
+                  <CardActionArea
+                    onClick={() => {
+                      addItem(index);
+                    }}
+                  >
+                    <CardMedia
+                      component="img"
+                      height={window.innerWidth * 0.1}
+                      image={item.img}
+                      alt="green iguana"
+                    />
+                    <CardContent>
                       <Typography
-                        variant="h6"
+                        gutterBottom
+                        variant="body1"
+                        component="div"
                         style={{
-                          color: "white",
+                          // wordBreak: "break-word",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          display: "-webkit-box",
+                          "-webkit-line-clamp": 3,
+                          "-webkit-box-orient": "vertical",
+                          color: "#BB6750",
                         }}
                       >
-                        Icon
+                        {item.title}
                       </Typography>
-                    </TableCell>
-                    <TableCell align="left">
                       <Typography
-                        variant="h6"
+                        variant="body2"
                         style={{
-                          color: "white",
+                          color: "#F7B09D",
                         }}
                       >
-                        Name
+                        {formatter.format(item.price)}
                       </Typography>
-                    </TableCell>
-                    <TableCell align="right">
-                      <Typography
-                        variant="h6"
-                        style={{
-                          color: "white",
-                        }}
-                      >
-                        Price
-                      </Typography>
-                    </TableCell>
-                    <TableCell align="right">
-                      <Typography
-                        variant="h6"
-                        style={{
-                          color: "white",
-                        }}
-                      >
-                        Qty
-                      </Typography>
-                    </TableCell>
-                    <TableCell align="right">
-                      <Typography
-                        variant="h6"
-                        style={{
-                          color: "white",
-                        }}
-                      >
-                        Remove
-                      </Typography>
-                    </TableCell>
-                    <TableCell align="right">
-                      <Typography
-                        variant="h6"
-                        style={{
-                          color: "white",
-                        }}
-                      >
-                        Subtotal
-                      </Typography>
-                    </TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {items.map((row, index) => (
-                    <TableRow
-                      key={row.name}
-                      sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
-                    >
+                    </CardContent>
+                  </CardActionArea>
+                </Card>
+              ))}
+            </Paper>
+          </Grid>
+          <Grid item xs={7}>
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "space-between",
+                height: "100%",
+              }}
+            >
+              <TableContainer
+                component={Paper}
+                style={{
+                  maxHeight: window.innerHeight - 200,
+                }}
+              >
+                <Table sx={{}} aria-label="simple table" size="small">
+                  <TableHead
+                    style={{
+                      backgroundColor: "#FF907C",
+                    }}
+                  >
+                    <TableRow>
+                      <TableCell>
+                        <Typography
+                          variant="h6"
+                          style={{
+                            color: "white",
+                          }}
+                        >
+                          Icon
+                        </Typography>
+                      </TableCell>
                       <TableCell align="left">
-                        <Avatar src={row.img} variant="rounded" />
-                      </TableCell>
-                      <TableCell
-                        align="left"
-                        style={{
-                          color: "#BB6750",
-                        }}
-                      >
-                        {row.title}
-                      </TableCell>
-                      <TableCell
-                        align="right"
-                        style={{
-                          color: "#BB6750",
-                        }}
-                      >
-                        {formatter.format(row.price)}
-                      </TableCell>
-                      <TableCell
-                        align="right"
-                        style={{
-                          color: "#BB6750",
-                        }}
-                      >
-                        {row.qty}
+                        <Typography
+                          variant="h6"
+                          style={{
+                            color: "white",
+                          }}
+                        >
+                          Name
+                        </Typography>
                       </TableCell>
                       <TableCell align="right">
-                        <Button
-                          onClick={() => removeItem(index)}
+                        <Typography
+                          variant="h6"
+                          style={{
+                            color: "white",
+                          }}
+                        >
+                          Price
+                        </Typography>
+                      </TableCell>
+                      <TableCell align="right">
+                        <Typography
+                          variant="h6"
+                          style={{
+                            color: "white",
+                          }}
+                        >
+                          Qty
+                        </Typography>
+                      </TableCell>
+                      <TableCell align="right">
+                        <Typography
+                          variant="h6"
+                          style={{
+                            color: "white",
+                          }}
+                        >
+                          Remove
+                        </Typography>
+                      </TableCell>
+                      <TableCell align="right">
+                        <Typography
+                          variant="h6"
+                          style={{
+                            color: "white",
+                          }}
+                        >
+                          Subtotal
+                        </Typography>
+                      </TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {items.map((row, index) => (
+                      <TableRow
+                        key={row.name}
+                        sx={{
+                          "&:last-child td, &:last-child th": { border: 0 },
+                        }}
+                      >
+                        <TableCell align="left">
+                          <Avatar src={row.img} variant="rounded" />
+                        </TableCell>
+                        <TableCell
+                          align="left"
                           style={{
                             color: "#BB6750",
                           }}
                         >
-                          <Delete />
-                        </Button>
-                      </TableCell>
-                      <TableCell
-                        align="right"
-                        style={{
-                          color: "#BB6750",
-                        }}
-                      >
-                        {formatter.format(row.subtotal)}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "flex-end",
-                margin: 20,
-              }}
-            >
-              <Button
-                variant="contained"
-                onClick={() => {
-                  resetItems();
-                }}
+                          {row.title}
+                        </TableCell>
+                        <TableCell
+                          align="right"
+                          style={{
+                            color: "#BB6750",
+                          }}
+                        >
+                          {formatter.format(row.price)}
+                        </TableCell>
+                        <TableCell
+                          align="right"
+                          style={{
+                            color: "#BB6750",
+                          }}
+                        >
+                          {row.qty}
+                        </TableCell>
+                        <TableCell align="right">
+                          <Button
+                            onClick={() => removeItem(index)}
+                            style={{
+                              color: "#BB6750",
+                            }}
+                          >
+                            <Delete />
+                          </Button>
+                        </TableCell>
+                        <TableCell
+                          align="right"
+                          style={{
+                            color: "#BB6750",
+                          }}
+                        >
+                          {formatter.format(row.subtotal)}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+              <div
                 style={{
-                  width: "40%",
-                  height: "50px",
-                  backgroundColor: "#FF907C",
-                }}
-                color="error"
-              >
-                Reset
-              </Button>
-              <Paper
-                style={{
-                  padding: "20px",
-                  borderRadius: "10px",
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "flex-end",
+                  margin: 20,
                 }}
               >
-                <Typography
-                  variant="h3"
+                <Button
+                  variant="contained"
+                  onClick={() => {
+                    resetItems();
+                  }}
                   style={{
-                    color: "#BB6750",
+                    width: "40%",
+                    height: "50px",
+                    backgroundColor: "#FF907C",
+                  }}
+                  color="error"
+                >
+                  <Typography variant="h5">Reset</Typography>
+                </Button>
+                <Paper
+                  style={{
+                    padding: "20px",
+                    borderRadius: "10px",
                   }}
                 >
-                  Total: {formatter.format(total)}
-                </Typography>
-              </Paper>
+                  <Typography
+                    variant="h3"
+                    style={{
+                      color: "#BB6750",
+                    }}
+                  >
+                    Total: {formatter.format(total)}
+                  </Typography>
+                </Paper>
+              </div>
             </div>
-          </div>
+          </Grid>
         </Grid>
-      </Grid>
+      </div>
     </div>
   );
 }
