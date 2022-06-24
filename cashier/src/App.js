@@ -285,6 +285,7 @@ function App() {
                 style={{
                   width: "40%",
                   height: "50px",
+                  backgroundColor: "#FF907C",
                 }}
                 color="error"
               >
