@@ -1,14 +1,11 @@
-import "./App.css";
 import {
   Avatar,
   Button,
+  Card,
+  CardActionArea,
+  CardContent,
+  CardMedia,
   Grid,
-  ImageList,
-  ImageListItem,
-  List,
-  ListItem,
-  ListItemAvatar,
-  ListItemText,
   Paper,
   Table,
   TableBody,
@@ -69,41 +66,42 @@ function App() {
             overflow: "auto",
           }}
         >
-          <Paper>
-            <List
-              sx={{ width: "100%", height: "100%", overflow: "auto" }}
-              cols={3}
-              rowHeight={100}
-            >
-              {itemData.map((item, index) => (
-                <ListItem>
-                  <ListItemAvatar key={item.title}>
-                    <Avatar
-                      variant="rounded"
-                      src={item.img}
-                      onClick={() => {
-                        addItem(index);
-                      }}
-                      sx={{
-                        height: 100,
-                        width: 100,
-                      }}
-                    />
-                  </ListItemAvatar>
-                  <ListItemText
-                    style={{
-                      paddingLeft: 10,
-                    }}
-                    primary={<Typography variant="h5">{item.title}</Typography>}
-                    secondary={
-                      <Typography variant="body1">
-                        {formatter.format(item.price)}
-                      </Typography>
-                    }
+          <Paper
+            style={{
+              display: "flex",
+              flexWrap: "wrap",
+              justifyContent: "space-around",
+              gap: "1rem",
+            }}
+          >
+            {itemData.map((item, index) => (
+              <Card
+                style={{
+                  flex: "1 0 41%",
+                }}
+              >
+                <CardActionArea
+                  onClick={() => {
+                    addItem(index);
+                  }}
+                >
+                  <CardMedia
+                    component="img"
+                    height={window.innerWidth * 0.15}
+                    image={item.img}
+                    alt="green iguana"
                   />
-                </ListItem>
-              ))}
-            </List>
+                  <CardContent>
+                    <Typography gutterBottom variant="h6" component="div">
+                      {item.title}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      {formatter.format(item.price)}
+                    </Typography>
+                  </CardContent>
+                </CardActionArea>
+              </Card>
+            ))}
           </Paper>
         </Grid>
         <Grid item xs={8}>
