@@ -4,6 +4,7 @@ import {
   Button,
   Card,
   CardActionArea,
+  CardActions,
   CardContent,
   CardMedia,
   Grid,
@@ -151,7 +152,7 @@ function App() {
                   <div>
                     <Grid container spacing="10px">
                       {group.items.map((item, indexI) => (
-                        <Grid item xs={6} md={6} key={indexI}>
+                        <Grid item xs={12} md={6} key={indexI}>
                           <Card>
                             <CardActionArea
                               onClick={() => {
