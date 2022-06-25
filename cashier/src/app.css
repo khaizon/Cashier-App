@@ -7,12 +7,12 @@
 ::-webkit-scrollbar {
     width: 7px;
     height: 7px;
-    border-radius: 3px;
+    border-radius: 5px;
   }
   
   /* Track */
   ::-webkit-scrollbar-track {
-    background: #fff;
+    background: #fff0;
   }
   
   /* Handle */
