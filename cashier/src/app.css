@@ -2,3 +2,26 @@
 @import url('https://fonts.googleapis.com/css?family=Cherry+Cream+Soda');
 @import url('https://fonts.googleapis.com/css?family=Montserrat');
 
+
+/* width */
+::-webkit-scrollbar {
+    width: 7px;
+    height: 7px;
+    border-radius: 3px;
+  }
+  
+  /* Track */
+  ::-webkit-scrollbar-track {
+    background: #fff;
+  }
+  
+  /* Handle */
+  ::-webkit-scrollbar-thumb {
+    background: #f9ab9d;
+    border-radius: 3px;
+  }
+  
+  /* Handle on hover */
+  ::-webkit-scrollbar-thumb:hover {
+    background: #FF907C;
+  }

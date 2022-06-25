@@ -126,6 +126,7 @@ function App() {
         style={{
           backgroundColor: "#ffe9e5",
           padding: "10px",
+          height: height - 20,
         }}
       >
         <div>
@@ -134,11 +135,13 @@ function App() {
             spacing={2}
             style={{
               overflow: "auto",
+              borderRadius: "5px",
             }}
           >
             <Grid
               item
-              xs={5}
+              xs={11}
+              sm={5}
               style={{
                 overflow: "auto",
                 height: height,
@@ -172,7 +175,7 @@ function App() {
                     <div>
                       <Grid container spacing="10px">
                         {group.items.map((item, indexI) => (
-                          <Grid item xs={12} md={6} key={indexI}>
+                          <Grid item xs={12} sm={6} key={indexI}>
                             <Card>
                               <CardActionArea
                                 onClick={() => {
@@ -251,7 +254,7 @@ function App() {
                 ))}
               </Paper>
             </Grid>
-            <Grid item xs={7}>
+            <Grid item xs={12} sm={7}>
               <div
                 style={{
                   display: "flex",
