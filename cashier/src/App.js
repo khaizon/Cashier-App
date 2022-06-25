@@ -35,9 +35,9 @@ const modalStyle = {
 	height: 300,
 	width: 300,
 	bgcolor: '#ffe9e5',
-	borderRadius: 3,
+	borderRadius: 1,
 	boxShadow: 24,
-	p: 4,
+	p: '20px',
 };
 
 const theme = createTheme({
@@ -512,7 +512,7 @@ function App() {
 							<Paper
 								style={{
 									padding: '5px',
-									borderRadius: '10px',
+									borderRadius: '5px',
 								}}
 							>
 								<Typography
@@ -528,7 +528,7 @@ function App() {
 						<div
 							style={{
 								display: 'flex',
-								gap: 5,
+								gap: 12,
 								flexWrap: 'wrap',
 							}}
 						>
@@ -536,7 +536,7 @@ function App() {
 								variant="contained"
 								style={{
 									backgroundColor: '#FF907C',
-									flex: '1 0 21%',
+									flex: '1 0 10%',
 								}}
 								onClick={() => {
 									addReceived(50);
@@ -548,7 +548,7 @@ function App() {
 								variant="contained"
 								style={{
 									backgroundColor: '#FF907C',
-									flex: '1 0 21%',
+									flex: '1 0 10%',
 								}}
 								onClick={() => {
 									addReceived(10);
@@ -560,7 +560,7 @@ function App() {
 								variant="contained"
 								style={{
 									backgroundColor: '#FF907C',
-									flex: '1 0 21%',
+									flex: '1 0 10%',
 								}}
 								onClick={() => {
 									addReceived(5);
@@ -572,7 +572,7 @@ function App() {
 								variant="contained"
 								style={{
 									backgroundColor: '#FF907C',
-									flex: '1 0 21%',
+									flex: '1 0 10%',
 								}}
 								onClick={() => {
 									addReceived(2);
@@ -624,7 +624,7 @@ function App() {
 							<Paper
 								style={{
 									padding: '10px',
-									borderRadius: '10px',
+									borderRadius: '5px',
 								}}
 							>
 								<Typography
@@ -656,7 +656,7 @@ function App() {
 							<Paper
 								style={{
 									padding: '10px',
-									borderRadius: '10px',
+									borderRadius: '5px',
 								}}
 							>
 								<Typography
