@@ -46,10 +46,10 @@ function App() {
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
 
-  const addItem = (index) => {
+  const addItem = (indexC, indexI) => {
     let foundDuplicate = false;
     for (let i = 0; i < items.length; i += 1) {
-      if (items[i].title === itemData[index].title) {
+      if (items[i].title === itemData[indexC].items[indexI].title) {
         foundDuplicate = true;
         break;
       }
@@ -57,7 +57,7 @@ function App() {
     if (foundDuplicate) {
       setItems(
         items.map((item) => {
-          if (item.title === itemData[index].title) {
+          if (item.title === itemData[indexC].items[indexI].title) {
             item.qty += 1;
             item.subtotal += item.price;
           }
@@ -65,10 +65,17 @@ function App() {
         })
       );
     } else {
-      setItems([...items, { ...itemData[index], qty: 1, subtotal: itemData[index].price }]);
+      setItems([
+        ...items,
+        {
+          ...itemData[indexC].items[indexI],
+          qty: 1,
+          subtotal: itemData[indexC].items[indexI].price,
+        },
+      ]);
     }
 
-    setTotal(total + itemData[index].price);
+    setTotal(total + itemData[indexC].items[indexI].price);
   };
 
   const resetItems = () => {
@@ -119,58 +126,107 @@ function App() {
           >
             <Paper
               style={{
-                display: "flex",
-                flexWrap: "wrap",
-                gap: "10px",
                 padding: "10px",
-                borderRadius: "15px",
+                borderRadius: "5px",
               }}
             >
-              {itemData.map((item, index) => (
-                <Card
-                  style={{
-                    flex: "1 0 130px",
-                  }}
-                >
-                  <CardActionArea
-                    onClick={() => {
-                      addItem(index);
+              {itemData.map((group, indexC) => (
+                <div key={indexC}>
+                  <Box
+                    style={{
+                      backgroundColor: "white",
+                      marginTop: "5px",
+                      marginBottom: "5px",
                     }}
                   >
-                    <CardMedia
-                      component="img"
-                      height={width * 0.1}
-                      image={item.img}
-                      alt="green iguana"
-                    />
-                    <CardContent>
-                      <Typography
-                        gutterBottom
-                        variant="body1"
-                        component="div"
-                        style={{
-                          // wordBreak: "break-word",
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                          display: "-webkit-box",
-                          WebkitLineClamp: 3,
-                          WebkitBoxOrient: "vertical",
-                          color: "#BB6750",
-                        }}
-                      >
-                        {item.title}
-                      </Typography>
-                      <Typography
-                        variant="body2"
-                        style={{
-                          color: "#F7B09D",
-                        }}
-                      >
-                        {formatter.format(item.price)}
-                      </Typography>
-                    </CardContent>
-                  </CardActionArea>
-                </Card>
+                    <Typography
+                      variant="h6"
+                      style={{
+                        color: group.palette3,
+                      }}
+                    >
+                      {group.category}
+                    </Typography>
+                  </Box>
+                  <div>
+                    <Grid container spacing="10px">
+                      {group.items.map((item, indexI) => (
+                        <Grid item xs={6} md={6} key={indexI}>
+                          <Card>
+                            <CardActionArea
+                              onClick={() => {
+                                addItem(indexC, indexI);
+                              }}
+                              sx={{
+                                display: "flex",
+                                alignItems: "stretch",
+                                justifyContent: "flex-start",
+                                backgroundColor: group.palette2,
+                              }}
+                            >
+                              <CardMedia
+                                component="img"
+                                style={{
+                                  height: "100px",
+                                  maxWidth: "100px",
+                                  minWidth: "100px",
+                                }}
+                                image={item.img}
+                                alt="green iguana"
+                              />
+                              <CardContent
+                                sx={{
+                                  padding: "10px 10px 0px 10px",
+                                  display: "flex",
+                                }}
+                              >
+                                <div
+                                  style={{
+                                    display: "flex",
+                                    flexDirection: "column",
+                                    justifyContent: "space-between",
+                                  }}
+                                >
+                                  <div>
+                                    <Typography
+                                      gutterBottom
+                                      variant="h6"
+                                      component="div"
+                                      style={{
+                                        wordBreak: "break-word",
+                                        overflow: "hidden",
+                                        textOverflow: "ellipsis",
+                                        display: "-webkit-box",
+                                        WebkitLineClamp: 2,
+                                        WebkitBoxOrient: "vertical",
+                                        color: "#BB6750",
+                                        marginBottom: "0px",
+                                        lineHeight: 1.15,
+                                      }}
+                                    >
+                                      {item.title}
+                                    </Typography>
+                                  </div>
+                                  <div>
+                                    <Typography
+                                      variant="h6"
+                                      style={{
+                                        color: "#F7B09D",
+                                        marginBottom: "5px",
+                                      }}
+                                    >
+                                      {formatter.format(item.price)}
+                                    </Typography>
+                                  </div>
+                                </div>
+                              </CardContent>
+                            </CardActionArea>
+                          </Card>
+                        </Grid>
+                      ))}
+                    </Grid>
+                  </div>
+                </div>
               ))}
             </Paper>
           </Grid>
@@ -190,14 +246,21 @@ function App() {
                   maxHeight: height - 150,
                 }}
               >
-                <Table sx={{}} aria-label="simple table" size="small">
+                <Table size="small">
                   <TableHead
                     style={{
                       backgroundColor: "#FF907C",
+                      position: "sticky",
+                      top: 0,
+                      zIndex: "1",
                     }}
                   >
                     <TableRow>
-                      <TableCell>
+                      <TableCell
+                        style={{
+                          padding: "0 10px 0 10px",
+                        }}
+                      >
                         <Typography
                           variant="h6"
                           style={{
@@ -207,7 +270,12 @@ function App() {
                           Icon
                         </Typography>
                       </TableCell>
-                      <TableCell align="left">
+                      <TableCell
+                        align="left"
+                        style={{
+                          padding: "0 10px 0 10px",
+                        }}
+                      >
                         <Typography
                           variant="h6"
                           style={{
@@ -267,7 +335,12 @@ function App() {
                           "&:last-child td, &:last-child th": { border: 0 },
                         }}
                       >
-                        <TableCell align="left">
+                        <TableCell
+                          align="left"
+                          style={{
+                            padding: "0px",
+                          }}
+                        >
                           <Avatar
                             src={row.img}
                             variant="rounded"
@@ -281,9 +354,10 @@ function App() {
                           align="left"
                           style={{
                             color: "#BB6750",
+                            padding: "0 10px 0 10px",
                           }}
                         >
-                          {row.title}
+                          <Typography variant="h6">{row.title}</Typography>
                         </TableCell>
                         <TableCell
                           align="right"
@@ -310,14 +384,17 @@ function App() {
                               style={{
                                 height: "40px",
                                 width: "40px",
-                                backgroundColor: row.qty > 1 ? "#ffc6bd" : "white",
+                                backgroundColor:
+                                  row.qty > 1 ? "#ffc6bd" : "white",
                                 borderRadius: 7,
                                 display: "flex",
                                 justifyContent: "center",
                                 alignItems: "center",
                               }}
                             >
-                              <Typography variant={row.qty > 1 ? "h5" : "body1"}>
+                              <Typography
+                                variant={row.qty > 1 ? "h5" : "body1"}
+                              >
                                 {row.qty}
                               </Typography>
                             </Box>
@@ -337,6 +414,7 @@ function App() {
                           align="right"
                           style={{
                             color: "#BB6750",
+                            fontWeight: "bold",
                           }}
                         >
                           {formatter.format(row.subtotal)}
@@ -595,88 +673,161 @@ export default App;
 
 const itemData = [
   {
-    img: "./images/artprint.jpg",
-    title: "Art Print",
-    price: 4.5,
+    category: "Stickers",
+    palette1: "#FFE6E6",
+    palette2: "#fff2f2",
+    palette3: "#ff7d7d",
+    items: [
+      {
+        img: "./images/sticker.jpg",
+        title: "Die Cut",
+        price: 2,
+      },
+      {
+        img: "./images/stickers3combo.jpg",
+        title: "3 x Die Cut",
+        price: 5,
+      },
+      {
+        img: "./images/maodonaldsticker.jpg",
+        title: "Mao Donalds",
+        price: 5,
+      },
+      {
+        img: "./images/mito.jpg",
+        title: "Collab",
+        price: 6.5,
+      },
+      {
+        img: "./images/stickerpack.jpg",
+        title: "Pack",
+        price: 6.5,
+      },
+      {
+        img: "./images/stickersheet.jpg",
+        title: "Sheet",
+        price: 7,
+      },
+    ],
   },
   {
-    img: "./images/artprint3combo.jpg",
-    title: "Art Print x 3",
-    price: 12,
+    category: "Key Chains",
+    palette1: "#DAEAF1",
+    palette2: "#f2f8fa",
+    palette3: "#3fb4e8",
+
+    items: [
+      {
+        img: "./images/snackskeychain.jpg",
+        title: "Snacks",
+        price: 5,
+      },
+      {
+        img: "./images/blind.jpg",
+        title: "Blind Bag",
+        price: 7,
+      },
+      {
+        img: "./images/keychain8.jpg",
+        title: "Mao Donalds",
+        price: 8,
+      },
+      {
+        img: "./images/keychain9.jpg",
+        title: "Milk / Bread",
+        price: 9,
+      },
+    ],
   },
+
   {
-    img: "./images/artprint5combo.jpg",
-    title: "Art Print x 5",
-    price: 22,
+    category: "Washi Tapes",
+    palette1: "#FFF89A",
+    palette2: "#f5f4e9",
+    palette3: "#c2b723",
+
+    items: [
+      {
+        img: "./images/washi.jpg",
+        title: "washi",
+        price: 7.5,
+      },
+    ],
   },
+
   {
-    img: "./images/bbtsling.jpg",
-    title: "Bubble Tea Sling",
-    price: 8,
+    category: "Acrylic Pins",
+    palette1: "#FFB2A6",
+    palette2: "#ffedeb",
+    palette3: "#ff5338",
+
+    items: [
+      {
+        img: "./images/medicinepin.jpg",
+        title: "Meds Pin",
+        price: 6,
+      },
+
+      {
+        img: "./images/pin5.jpg",
+        title: "Snacks Pin",
+        price: 5,
+      },
+    ],
   },
+
   {
-    img: "./images/blind.jpg",
-    title: "Blind Bag",
-    price: 7,
+    category: "Art Prints",
+    palette1: "#FAFDD6",
+    palette2: "#f9faf0",
+    palette3: "#abb825",
+
+    items: [
+      {
+        img: "./images/artprint.jpg",
+        title: "Art Print",
+        price: 4.5,
+      },
+      {
+        img: "./images/artprint3combo.jpg",
+        title: "3 x Art Print",
+        price: 12,
+      },
+      {
+        img: "./images/artprint5combo.jpg",
+        title: "5 x Art Print",
+        price: 22,
+      },
+    ],
   },
+
   {
-    img: "./images/keychain8.jpg",
-    title: "KeyChain (MaoDonalds)",
-    price: 8,
+    category: "Memo Pads",
+    palette1: "#E4E9BE",
+    palette2: "#fefff5",
+    palette3: "#a5b814",
+
+    items: [
+      {
+        img: "./images/memopad.jpg",
+        title: "Memo Pad",
+        price: 5,
+      },
+    ],
   },
+
   {
-    img: "./images/keychain9.jpg",
-    title: "KeyChain (Milk/Bread)",
-    price: 9,
-  },
-  {
-    img: "./images/maodonaldsticker.jpg",
-    title: "Maodonalds",
-    price: 5,
-  },
-  {
-    img: "./images/medicinepin.jpg",
-    title: "Meds Pin",
-    price: 6,
-  },
-  {
-    img: "./images/memopad.jpg",
-    title: "Memo Pad",
-    price: 5,
-  },
-  {
-    img: "./images/mito.jpg",
-    title: "Collab",
-    price: 6.5,
-  },
-  {
-    img: "./images/pin5.jpg",
-    title: "Snacks Pin",
-    price: 5,
-  },
-  {
-    img: "./images/sticker.jpg",
-    title: "sticker",
-    price: 2,
-  },
-  {
-    img: "./images/stickers3combo.jpg",
-    title: "Stickers x 3",
-    price: 5,
-  },
-  {
-    img: "./images/stickerpack.jpg",
-    title: "Sticker Pack",
-    price: 6.5,
-  },
-  {
-    img: "./images/stickersheet.jpg",
-    title: "Sticker Sheet",
-    price: 7,
-  },
-  {
-    img: "./images/washi.jpg",
-    title: "washi",
-    price: 7.5,
+    category: "BB Tea Carriers",
+    palette1: "#A2B38B",
+    palette2: "#eef0eb",
+    palette3: "#73b020",
+
+    items: [
+      {
+        img: "./images/bbtsling.jpg",
+        title: "BB Tea Sling",
+        price: 8,
+      },
+    ],
   },
 ];
