@@ -21,12 +21,11 @@ import {
 	Typography,
 } from '@mui/material';
 
+import { GoogleLogin } from 'react-google-login';
 import { Delete } from '@mui/icons-material';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import useWindowDimensions from './hooks/useWindowDimensions';
-
 import './app.css';
-
 const modalStyle = {
 	position: 'absolute',
 	top: '50%',
@@ -111,6 +110,10 @@ function App() {
 		//minimumFractionDigits: 0, // (this suffices for whole numbers, but will print 2500.10 as $2,500.1)
 		//maximumFractionDigits: 0, // (causes 2500.99 to be printed as $2,501)
 	});
+
+	const responseGoogle = (response) => {
+		console.log(response);
+	};
 	return (
 		<ThemeProvider theme={theme}>
 			<div
@@ -121,6 +124,14 @@ function App() {
 					height: height - 20,
 				}}
 			>
+				<GoogleLogin
+					clientId="598459687549-hu6l7pcfut80no9oa4b4tta2q279kqod.apps.googleusercontent.com"
+					buttonText="Login"
+					onSuccess={responseGoogle}
+					onFailure={responseGoogle}
+					isSignedIn={true}
+					cookiePolicy={'single_host_origin'}
+				/>
 				<div>
 					<Grid
 						container
