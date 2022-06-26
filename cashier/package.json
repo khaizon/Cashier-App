@@ -2,7 +2,7 @@
   "name": "cashier",
   "version": "0.1.0",
   "private": true,
-  "homepage": ".",
+  "homepage": "https://khaizon.github.io/Cashier-App/",
   "dependencies": {
     "@emotion/react": "^11.9.3",
     "@emotion/styled": "^11.9.3",
@@ -13,7 +13,6 @@
     "@testing-library/user-event": "^13.5.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-google-login": "^5.2.2",
     "react-scripts": "5.0.1",
     "web-vitals": "^2.1.4"
   },

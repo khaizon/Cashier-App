@@ -1,13 +1,13 @@
 {
   "files": {
     "main.css": "/Cashier-App/static/css/main.bcd16428.css",
-    "main.js": "/Cashier-App/static/js/main.f626ce4f.js",
+    "main.js": "/Cashier-App/static/js/main.2d8073b5.js",
     "index.html": "/Cashier-App/index.html",
     "main.bcd16428.css.map": "/Cashier-App/static/css/main.bcd16428.css.map",
-    "main.f626ce4f.js.map": "/Cashier-App/static/js/main.f626ce4f.js.map"
+    "main.2d8073b5.js.map": "/Cashier-App/static/js/main.2d8073b5.js.map"
   },
   "entrypoints": [
     "static/css/main.bcd16428.css",
-    "static/js/main.f626ce4f.js"
+    "static/js/main.2d8073b5.js"
   ]
 }
