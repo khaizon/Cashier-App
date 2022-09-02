@@ -1,14 +1,20 @@
 import { Grid, Paper, Typography, Button } from '@mui/material';
 import { useState } from 'react';
+import ConfirmRecord from './views/ComfirmRecord';
 import ComputeChange from './views/ComputeChange';
 import ItemSelector from './views/ItemSelector';
 import SelectedItems from './views/SelectedItems';
 
 const Cashier = ({ props: { items, setItems, total, setTotal, received, setReceived, height, itemData } }) => {
 	// modal
-	const [open, setOpen] = useState(false);
-	const handleOpen = () => setOpen(true);
-	const handleClose = () => setOpen(false);
+	const [openComputeChange, setOpenComputeChange] = useState(false);
+	const handleOpenComputeChange = () => setOpenComputeChange(true);
+	const handleCloseComputeChange = () => setOpenComputeChange(false);
+
+	const [openConfirmRecord, setOpenConfirmRecord] = useState(false);
+	const handleOpenConfirmRecord = () => setOpenConfirmRecord(true);
+	const handleCloseConfirmRecord = () => setOpenConfirmRecord(false);
+
 	const addItem = (indexC, indexI) => {
 		let foundDuplicate = false;
 		for (let i = 0; i < items.length; i += 1) {
@@ -118,7 +124,7 @@ const Cashier = ({ props: { items, setItems, total, setTotal, received, setRecei
 										resetItems();
 									}}
 									style={{
-										width: '40%',
+										width: '20%',
 										height: '50px',
 										backgroundColor: '#FF907C',
 									}}
@@ -126,12 +132,26 @@ const Cashier = ({ props: { items, setItems, total, setTotal, received, setRecei
 								>
 									<Typography variant="h5">Reset</Typography>
 								</Button>
+								<Button
+									variant="contained"
+									onClick={() => {
+										handleOpenConfirmRecord();
+									}}
+									style={{
+										width: '20%',
+										height: '50px',
+										backgroundColor: '#FF907C',
+									}}
+									color="error"
+								>
+									<Typography variant="h5">Record</Typography>
+								</Button>
 								<Paper
 									style={{
 										padding: '10px',
 										borderRadius: '5px',
 									}}
-									onClick={handleOpen}
+									onClick={handleOpenComputeChange}
 								>
 									<Typography
 										variant="h3"
@@ -147,7 +167,8 @@ const Cashier = ({ props: { items, setItems, total, setTotal, received, setRecei
 					</Grid>
 				</Grid>
 			</div>
-			<ComputeChange props={{ addReceived, formatter, total, received, setReceived, handleClose, open }} />
+			<ConfirmRecord props={{ items, total, handleCloseConfirmRecord, openConfirmRecord }} />
+			<ComputeChange props={{ addReceived, formatter, total, received, setReceived, handleCloseComputeChange, openComputeChange }} />
 		</div>
 	);
 };

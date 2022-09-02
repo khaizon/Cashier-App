@@ -29,11 +29,19 @@ const modalStyle = {
 	borderRadius: 1,
 	boxShadow: 24,
 	p: '20px',
+	cursor: 'pointer',
 };
 
-const ComputeChange = ({ props: { addReceived, formatter, total, received, setReceived, handleClose, open } }) => {
+const ComputeChange = ({
+	props: { addReceived, formatter, total, received, setReceived, handleCloseComputeChange, openComputeChange },
+}) => {
 	return (
-		<Modal open={open} onClose={handleClose} aria-labelledby="modal-modal-title" aria-describedby="modal-modal-description">
+		<Modal
+			open={openComputeChange}
+			onClose={handleCloseComputeChange}
+			aria-labelledby="compute-change"
+			aria-describedby="modal-modal-description"
+		>
 			<Box sx={modalStyle}>
 				<div
 					style={{

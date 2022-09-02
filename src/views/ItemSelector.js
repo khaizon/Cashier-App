@@ -21,7 +21,8 @@ const ItemSelector = ({ props: { itemData, addItem, formatter } }) => {
 							variant="h5"
 							style={{
 								color: group.palette3,
-								fontFamily: 'Indie Flower, Cherry Cream Soda',
+								fontSize: '18px',
+								fontFamily: 'Montserrat, Cherry Cream Soda',
 							}}
 						>
 							{group.category}
@@ -81,6 +82,7 @@ const ItemSelector = ({ props: { itemData, addItem, formatter } }) => {
 																color: '#BB6750',
 																marginBottom: '0px',
 																lineHeight: 1.15,
+																fontSize: '15px',
 															}}
 														>
 															{item.title}
