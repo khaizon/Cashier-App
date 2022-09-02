@@ -79,7 +79,7 @@ const ItemSelector = ({ props: { itemData, addItem, formatter } }) => {
 																display: '-webkit-box',
 																WebkitLineClamp: 2,
 																WebkitBoxOrient: 'vertical',
-																color: '#BB6750',
+																color: group.palette3,
 																marginBottom: '0px',
 																lineHeight: 1.15,
 																fontSize: '15px',
