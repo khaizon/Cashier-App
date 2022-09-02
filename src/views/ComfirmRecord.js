@@ -1,22 +1,6 @@
-import {
-	Card,
-	CardActionArea,
-	CardContent,
-	CardMedia,
-	Grid,
-	Paper,
-	Table,
-	TableCell,
-	TableContainer,
-	TableHead,
-	TableRow,
-	Typography,
-	Button,
-	Avatar,
-	TableBody,
-	Box,
-	Modal,
-} from '@mui/material';
+import { Typography, Button, Avatar, TableBody, Snackbar, Box, Modal } from '@mui/material';
+import MuiAlert from '@mui/material/Alert';
+
 import { useState } from 'react';
 import { useEffect } from 'react';
 
@@ -48,8 +32,9 @@ function generateString(length) {
 	return result;
 }
 
-const ConfirmRecord = ({ props: { items, total, handleCloseConfirmRecord, openConfirmRecord } }) => {
+const ConfirmRecord = ({ props: { items, total, handleCloseConfirmRecord, openConfirmRecord, sheetName } }) => {
 	const [payment, setPayment] = useState(0);
+	const [recorded, setRecorded] = useState(false);
 
 	function recordPayment() {
 		var params = {
@@ -58,7 +43,7 @@ const ConfirmRecord = ({ props: { items, total, handleCloseConfirmRecord, openCo
 
 			// The A1 notation of a range to search for a logical table of data.
 			// Values will be appended after the last row of the table.
-			range: 'maomao-records!A:E', // TODO: Update placeholder value.
+			range: `${sheetName}-records!A:E`, // TODO: Update placeholder value.
 
 			// How the input data should be interpreted.
 			valueInputOption: 'USER_ENTERED', // TODO: Update placeholder value.
@@ -88,6 +73,7 @@ const ConfirmRecord = ({ props: { items, total, handleCloseConfirmRecord, openCo
 			function (response) {
 				// TODO: Change code below to process the `response` object:
 				console.log(response.result);
+				setRecorded(true);
 			},
 			function (reason) {
 				console.error('error: ' + reason.result.error.message);
@@ -98,7 +84,10 @@ const ConfirmRecord = ({ props: { items, total, handleCloseConfirmRecord, openCo
 	return (
 		<Modal
 			open={openConfirmRecord}
-			onClose={handleCloseConfirmRecord}
+			onClose={() => {
+				handleCloseConfirmRecord();
+				setRecorded(false);
+			}}
 			aria-labelledby="modal-modal-title"
 			aria-describedby="modal-modal-description"
 		>
@@ -163,12 +152,12 @@ const ConfirmRecord = ({ props: { items, total, handleCloseConfirmRecord, openCo
 						</div>
 						<Button
 							variant="contained"
-							color="error"
+							color={recorded ? 'success' : 'error'}
 							onClick={() => {
 								recordPayment();
 							}}
 						>
-							Record
+							Record{recorded && 'ed'}
 						</Button>
 					</div>
 				</div>

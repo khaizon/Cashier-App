@@ -59,7 +59,7 @@ const processExcelResult = (arr) => {
 					id: objects[i].id,
 					img: objects[i].img,
 					title: objects[i].title,
-					price: parseInt(objects[i].price),
+					price: parseFloat(objects[i].price),
 				},
 			];
 			seenCatetories.push(objects[i].category);
@@ -77,6 +77,7 @@ const processExcelResult = (arr) => {
 	if (result.find((item) => item.category === tempItem.category) === undefined) {
 		result.push(tempItem);
 	}
+
 	return result;
 };
 
@@ -243,7 +244,6 @@ function App() {
 								if (e.key === 'Enter') {
 									e.preventDefault();
 									handleAuthClick();
-									setSheetName('');
 								}
 							}}
 							autoFocus
@@ -280,6 +280,7 @@ function App() {
 						setReceived,
 						height,
 						itemData,
+						sheetName,
 					}}
 				/>
 			)}
