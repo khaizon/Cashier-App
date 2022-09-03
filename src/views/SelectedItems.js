@@ -120,7 +120,14 @@ const SelectedItems = ({ props: { items, formatter, height, removeItem } }) => {
 									padding: '0 10px 0 10px',
 								}}
 							>
-								<Typography variant="h6">{row.title}</Typography>
+								<Typography
+									variant="h6"
+									style={{
+										fontWeight: 400,
+									}}
+								>
+									{row.title}
+								</Typography>
 							</TableCell>
 							<TableCell
 								align="right"

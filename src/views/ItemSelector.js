@@ -21,8 +21,9 @@ const ItemSelector = ({ props: { itemData, addItem, formatter } }) => {
 							variant="h5"
 							style={{
 								color: group.palette3,
-								fontSize: '18px',
+								fontSize: '1.3rem',
 								fontFamily: 'Montserrat, Cherry Cream Soda',
+								fontWeight: 500,
 							}}
 						>
 							{group.category}
@@ -82,7 +83,9 @@ const ItemSelector = ({ props: { itemData, addItem, formatter } }) => {
 																color: group.palette3,
 																marginBottom: '0px',
 																lineHeight: 1.15,
-																fontSize: '15px',
+																fontSize: '1.25rem',
+																fontFamily: 'Montserrat, Cherry Cream Soda',
+																fontWeight: 400,
 															}}
 														>
 															{item.title}
@@ -94,6 +97,7 @@ const ItemSelector = ({ props: { itemData, addItem, formatter } }) => {
 															style={{
 																color: '#F7B09D',
 																marginBottom: '5px',
+																fontWeight: 400,
 															}}
 														>
 															{formatter.format(item.price)}
