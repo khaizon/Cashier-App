@@ -185,7 +185,6 @@ function App() {
 			return;
 		}
 		const range = response.result;
-		console.log(processExcelResult(range.values));
 		if (!range || !range.values || range.values.length == 0) {
 			console.log('empty result');
 			return;
