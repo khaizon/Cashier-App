@@ -35,6 +35,7 @@ function generateString(length) {
 const ConfirmRecord = ({ props: { items, total, handleCloseConfirmRecord, openConfirmRecord, sheetName } }) => {
 	const [payment, setPayment] = useState(0);
 	const [recorded, setRecorded] = useState(false);
+	const [error, setError] = useState('');
 
 	function recordPayment() {
 		var params = {
@@ -72,11 +73,11 @@ const ConfirmRecord = ({ props: { items, total, handleCloseConfirmRecord, openCo
 		request.then(
 			function (response) {
 				// TODO: Change code below to process the `response` object:
-				console.log(response.result);
 				setRecorded(true);
 			},
 			function (reason) {
 				console.error('error: ' + reason.result.error.message);
+				setError('error: ' + reason.result.error.message);
 			}
 		);
 	}
@@ -87,6 +88,7 @@ const ConfirmRecord = ({ props: { items, total, handleCloseConfirmRecord, openCo
 			onClose={() => {
 				handleCloseConfirmRecord();
 				setRecorded(false);
+				setError('');
 			}}
 			aria-labelledby="modal-modal-title"
 			aria-describedby="modal-modal-description"
@@ -126,6 +128,7 @@ const ConfirmRecord = ({ props: { items, total, handleCloseConfirmRecord, openCo
 							<Typography variant="h6">Total: {total}</Typography>
 						</div>
 					</div>
+					<div>{error}</div>
 					<div
 						style={{
 							display: 'flex',
