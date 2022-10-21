@@ -91,7 +91,7 @@ const Cashier = ({ props: { items, setItems, total, setTotal, received, setRecei
 					<Grid
 						item
 						xs={11}
-						sm={5}
+						sm={6}
 						style={{
 							overflow: 'auto',
 							height: height,
@@ -99,7 +99,7 @@ const Cashier = ({ props: { items, setItems, total, setTotal, received, setRecei
 					>
 						<ItemSelector props={{ addItem, itemData, formatter }} />
 					</Grid>
-					<Grid item xs={12} sm={7}>
+					<Grid item xs={12} sm={6}>
 						<div
 							style={{
 								display: 'flex',
