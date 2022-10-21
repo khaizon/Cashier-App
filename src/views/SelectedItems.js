@@ -7,6 +7,7 @@ const SelectedItems = ({ props: { items, formatter, height, removeItem } }) => {
 			component={Paper}
 			style={{
 				maxHeight: height - 150,
+				padding: 0,
 			}}
 		>
 			<Table size="small">
@@ -85,7 +86,7 @@ const SelectedItems = ({ props: { items, formatter, height, removeItem } }) => {
 									color: 'white',
 								}}
 							>
-								Subtotal
+								Sub
 							</Typography>
 						</TableCell>
 					</TableRow>
@@ -124,15 +125,17 @@ const SelectedItems = ({ props: { items, formatter, height, removeItem } }) => {
 									variant="h6"
 									style={{
 										fontWeight: 400,
+										padding: 0,
 									}}
 								>
 									{row.title}
 								</Typography>
 							</TableCell>
 							<TableCell
-								align="right"
+								align="center"
 								style={{
 									color: '#BB6750',
+									padding: 0,
 								}}
 							>
 								{formatter.format(row.price)}
@@ -141,6 +144,7 @@ const SelectedItems = ({ props: { items, formatter, height, removeItem } }) => {
 								align="center"
 								style={{
 									color: row.qty > 1 ? 'white' : '#BB6750',
+									padding: 0,
 								}}
 							>
 								<div
@@ -165,7 +169,12 @@ const SelectedItems = ({ props: { items, formatter, height, removeItem } }) => {
 									</Box>
 								</div>
 							</TableCell>
-							<TableCell align="center">
+							<TableCell
+								align="center"
+								style={{
+									padding: 0,
+								}}
+							>
 								<Button
 									onClick={() => removeItem(index)}
 									style={{
@@ -176,7 +185,7 @@ const SelectedItems = ({ props: { items, formatter, height, removeItem } }) => {
 								</Button>
 							</TableCell>
 							<TableCell
-								align="right"
+								align="center"
 								style={{
 									color: '#BB6750',
 									fontWeight: 'bold',
