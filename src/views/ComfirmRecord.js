@@ -40,7 +40,7 @@ const ConfirmRecord = ({ props: { items, total, handleCloseConfirmRecord, openCo
 	function recordPayment() {
 		var params = {
 			// The ID of the spreadsheet to update.
-			spreadsheetId: '1bKKFlt11L5WSsu8bx6PV5o7w0T3jAvXxycGIuJiH1fw', // TODO: Update placeholder value.
+			spreadsheetId: '1e94IfiaKPi7ULUjk29yAKcFm_Xt8U3SWNK5UhBo-VDk', // TODO: Update placeholder value.
 
 			// The A1 notation of a range to search for a logical table of data.
 			// Values will be appended after the last row of the table.
