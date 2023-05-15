@@ -81,8 +81,8 @@ const processExcelResult = (arr) => {
 	return result;
 };
 
-const CLIENT_ID = '598459687549-hu6l7pcfut80no9oa4b4tta2q279kqod.apps.googleusercontent.com';
-const API_KEY = 'AIzaSyD2TgeAKgGUR22sNWabRVpswpJq4h2lQYY';
+const CLIENT_ID = '891693805973-8ad6a0dv13n9g6nu6ktj7qi0bum9oqr3.apps.googleusercontent.com';
+const API_KEY = 'AIzaSyA4h2Wnm3i8dMEukuc3KX83MX-UqmqUdl4';
 // Discovery doc URL for APIs used by the quickstart
 const DISCOVERY_DOC = 'https://sheets.googleapis.com/$discovery/rest?version=v4';
 // Authorization scopes required by the API; multiple scopes can be
@@ -177,7 +177,7 @@ function App() {
 		try {
 			// Fetch first 10 files
 			response = await window.gapi.client.sheets.spreadsheets.values.get({
-				spreadsheetId: '1bKKFlt11L5WSsu8bx6PV5o7w0T3jAvXxycGIuJiH1fw',
+				spreadsheetId: '1e94IfiaKPi7ULUjk29yAKcFm_Xt8U3SWNK5UhBo-VDk',
 				range: `${sheetName}!A:H`,
 			});
 		} catch (err) {
