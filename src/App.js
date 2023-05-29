@@ -73,7 +73,6 @@ const processExcelResult = (arr) => {
 			price: parseInt(objects[i].price),
 		});
 	}
-
 	if (result.find((item) => item.category === tempItem.category) === undefined) {
 		result.push(tempItem);
 	}
@@ -81,8 +80,6 @@ const processExcelResult = (arr) => {
 	return result;
 };
 
-const CLIENT_ID = '891693805973-8ad6a0dv13n9g6nu6ktj7qi0bum9oqr3.apps.googleusercontent.com';
-const API_KEY = 'AIzaSyA4h2Wnm3i8dMEukuc3KX83MX-UqmqUdl4';
 // Discovery doc URL for APIs used by the quickstart
 const DISCOVERY_DOC = 'https://sheets.googleapis.com/$discovery/rest?version=v4';
 // Authorization scopes required by the API; multiple scopes can be
@@ -105,7 +102,7 @@ function App() {
 
 	const gisLoaded = () => {
 		tokenClient = window.google.accounts.oauth2.initTokenClient({
-			client_id: CLIENT_ID,
+			client_id: process.env.REACT_APP_CLIENT_ID,
 			scope: SCOPES,
 			callback: '', // defined later
 		});
@@ -124,8 +121,9 @@ function App() {
 	}
 
 	async function intializeGapiClient() {
+		console.log(process.env.REACT_APP_API_KEY)
 		await window.gapi.client.init({
-			apiKey: API_KEY,
+			apiKey: process.env.REACT_APP_API_KEY,
 			discoveryDocs: [DISCOVERY_DOC],
 		});
 		gapiInited = true;
@@ -177,7 +175,7 @@ function App() {
 		try {
 			// Fetch first 10 files
 			response = await window.gapi.client.sheets.spreadsheets.values.get({
-				spreadsheetId: '1e94IfiaKPi7ULUjk29yAKcFm_Xt8U3SWNK5UhBo-VDk',
+				spreadsheetId: process.env.REACT_APP_SPREADSHEET_ID,
 				range: `${sheetName}!A:H`,
 			});
 		} catch (err) {

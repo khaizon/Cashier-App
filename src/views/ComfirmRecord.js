@@ -1,8 +1,6 @@
-import { Typography, Button, Avatar, TableBody, Snackbar, Box, Modal } from '@mui/material';
-import MuiAlert from '@mui/material/Alert';
+import { Typography, Button, Box, Modal } from '@mui/material';
 
 import { useState } from 'react';
-import { useEffect } from 'react';
 
 const modalStyle = {
 	position: 'absolute',
@@ -40,7 +38,7 @@ const ConfirmRecord = ({ props: { items, total, handleCloseConfirmRecord, openCo
 	function recordPayment() {
 		var params = {
 			// The ID of the spreadsheet to update.
-			spreadsheetId: '1e94IfiaKPi7ULUjk29yAKcFm_Xt8U3SWNK5UhBo-VDk', // TODO: Update placeholder value.
+			spreadsheetId: process.env.REACT_APP_SPREADSHEET_ID, // TODO: Update placeholder value.
 
 			// The A1 notation of a range to search for a logical table of data.
 			// Values will be appended after the last row of the table.
