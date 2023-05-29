@@ -121,7 +121,6 @@ function App() {
 	}
 
 	async function intializeGapiClient() {
-		console.log(process.env.REACT_APP_API_KEY)
 		await window.gapi.client.init({
 			apiKey: process.env.REACT_APP_API_KEY,
 			discoveryDocs: [DISCOVERY_DOC],
