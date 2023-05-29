@@ -1,22 +1,4 @@
-import {
-	Card,
-	CardActionArea,
-	CardContent,
-	CardMedia,
-	Grid,
-	Paper,
-	Table,
-	TableCell,
-	TableContainer,
-	TableHead,
-	TableRow,
-	Typography,
-	Button,
-	Avatar,
-	TableBody,
-	Box,
-	Modal,
-} from '@mui/material';
+import { Paper, Typography, Button, Box, Modal } from '@mui/material';
 
 const modalStyle = {
 	position: 'absolute',

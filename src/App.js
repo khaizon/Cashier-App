@@ -1,23 +1,8 @@
 import {
-	Avatar,
-	Box,
 	Button,
-	Card,
-	CardActionArea,
-	CardActions,
-	CardContent,
-	CardMedia,
 	createTheme,
-	Grid,
 	Input,
-	Modal,
 	Paper,
-	Table,
-	TableBody,
-	TableCell,
-	TableContainer,
-	TableHead,
-	TableRow,
 	ThemeProvider,
 	Typography,
 } from '@mui/material';
@@ -93,7 +78,7 @@ function App() {
 	const [items, setItems] = useState([]);
 	const [total, setTotal] = useState(0);
 	const [received, setReceived] = useState(0);
-	const { height, width } = useWindowDimensions();
+	const { height } = useWindowDimensions();
 	const [showAuthorize, setShowAuthorize] = useState(false);
 	const [authText, setAuthText] = useState('Login');
 	const [showSignout, setShowSignout] = useState(false);
@@ -102,6 +87,7 @@ function App() {
 
 	const gisLoaded = () => {
 		tokenClient = window.google.accounts.oauth2.initTokenClient({
+			auto_select: true,
 			client_id: process.env.REACT_APP_CLIENT_ID,
 			scope: SCOPES,
 			callback: '', // defined later
@@ -155,6 +141,7 @@ function App() {
 	/**
 	 *  Sign out the user upon button click.
 	 */
+	// eslint-disable-next-line
 	function handleSignoutClick() {
 		const token = window.gapi.client.getToken();
 		if (token !== null) {
@@ -182,7 +169,7 @@ function App() {
 			return;
 		}
 		const range = response.result;
-		if (!range || !range.values || range.values.length == 0) {
+		if (!range || !range.values || range.values.length === 0) {
 			console.log('empty result');
 			return;
 		}

@@ -72,6 +72,7 @@ const ConfirmRecord = ({ props: { items, total, handleCloseConfirmRecord, openCo
 			function (response) {
 				// TODO: Change code below to process the `response` object:
 				setRecorded(true);
+				console.log(response);
 			},
 			function (reason) {
 				console.error('error: ' + reason.result.error.message);
@@ -107,20 +108,24 @@ const ConfirmRecord = ({ props: { items, total, handleCloseConfirmRecord, openCo
 						}}
 					>
 						<table style={{ textAlign: 'center', width: '100%', fontFamily: 'Montserrat' }}>
-							<tr>
-								<th style={{ textAlign: 'left' }}>Name</th>
-								<th>Price</th>
-								<th>Qty</th>
-								<th>Subtotal</th>
-							</tr>
-							{items.map((item, index) => (
-								<tr key={index}>
-									<td style={{ textAlign: 'left' }}>{item.title}</td>
-									<td>{item.price}</td>
-									<td>{item.qty}</td>
-									<td>{item.subtotal}</td>
+							<thead>
+								<tr>
+									<th style={{ textAlign: 'left' }}>Name</th>
+									<th>Price</th>
+									<th>Qty</th>
+									<th>Subtotal</th>
 								</tr>
-							))}
+							</thead>
+							<tbody>
+								{items.map((item, index) => (
+									<tr key={index}>
+										<td style={{ textAlign: 'left' }}>{item.title}</td>
+										<td>{item.price}</td>
+										<td>{item.qty}</td>
+										<td>{item.subtotal}</td>
+									</tr>
+								))}
+							</tbody>
 						</table>
 						<div style={{ textAlign: 'right', paddingTop: 20 }}>
 							<Typography variant="h6">Total: {total}</Typography>
