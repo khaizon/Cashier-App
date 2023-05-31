@@ -5,7 +5,7 @@ import ComputeChange from './views/ComputeChange';
 import ItemSelector from './views/ItemSelector';
 import SelectedItems from './views/SelectedItems';
 
-const Cashier = ({ props: { items, setItems, total, setTotal, received, setReceived, height, itemData, sheetName } }) => {
+const Cashier = ({ props: { items, setItems, total, setTotal, received, setReceived, height, itemData, sheetName, tokenClient } }) => {
 	// modal
 	const [openComputeChange, setOpenComputeChange] = useState(false);
 	const handleOpenComputeChange = () => setOpenComputeChange(true);
@@ -167,7 +167,7 @@ const Cashier = ({ props: { items, setItems, total, setTotal, received, setRecei
 					</Grid>
 				</Grid>
 			</div>
-			<ConfirmRecord props={{ items, total, handleCloseConfirmRecord, openConfirmRecord, sheetName }} />
+			<ConfirmRecord props={{ items, total, handleCloseConfirmRecord, openConfirmRecord, sheetName, tokenClient }} />
 			<ComputeChange props={{ addReceived, formatter, total, received, setReceived, handleCloseComputeChange, openComputeChange }} />
 		</div>
 	);

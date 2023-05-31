@@ -30,7 +30,7 @@ function generateString(length) {
 	return result;
 }
 
-const ConfirmRecord = ({ props: { items, total, handleCloseConfirmRecord, openConfirmRecord, sheetName } }) => {
+const ConfirmRecord = ({ props: { items, total, handleCloseConfirmRecord, openConfirmRecord, sheetName, tokenClient } }) => {
 	const [payment, setPayment] = useState(0);
 	const [recorded, setRecorded] = useState(false);
 	const [error, setError] = useState('');
@@ -77,6 +77,7 @@ const ConfirmRecord = ({ props: { items, total, handleCloseConfirmRecord, openCo
 			function (reason) {
 				console.error('error: ' + reason.result.error.message);
 				setError('error: ' + reason.result.error.message);
+				tokenClient.requestAccessToken();
 			}
 		);
 	}
