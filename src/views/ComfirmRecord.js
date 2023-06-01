@@ -72,11 +72,12 @@ const ConfirmRecord = ({ props: { items, total, handleCloseConfirmRecord, openCo
 			function (response) {
 				// TODO: Change code below to process the `response` object:
 				setRecorded(true);
+				setError('');
 				console.log(response);
 			},
 			function (reason) {
 				console.error('error: ' + reason.result.error.message);
-				setError('error: ' + reason.result.error.message);
+				setError('error: login timeout. try again after signin in :)');
 				tokenClient.requestAccessToken();
 			}
 		);
