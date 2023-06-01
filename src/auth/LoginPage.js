@@ -98,12 +98,13 @@ const LoginPage = ({ setItems, setAuth, setTokenClient, sheetName, setSheetName 
 			});
 			setGapiInited(true);
 		}
+		/** Load gapi and gsi script and define callback when html script has been
+		 * executed
+		 */
 		const gapiScript = document.createElement('script');
 		gapiScript.src = 'https://apis.google.com/js/api.js';
 		gapiScript.async = true;
-		gapiScript.onload = () => {
-			window.gapi.load('client', intializeGapiClient);
-		};
+		gapiScript.onload = () => window.gapi.load('client', intializeGapiClient);
 		document.body.appendChild(gapiScript);
 		const gsiScript = document.createElement('script');
 		gsiScript.src = 'https://accounts.google.com/gsi/client';

@@ -73,7 +73,6 @@ const ConfirmRecord = ({ props: { items, total, handleCloseConfirmRecord, openCo
 				// TODO: Change code below to process the `response` object:
 				setRecorded(true);
 				setError('');
-
 			},
 			function (reason) {
 				console.error('error: ' + reason.result.error.message);
