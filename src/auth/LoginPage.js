@@ -65,10 +65,9 @@ const listMajors = async (sheetName, callback) => {
 	}
 	callback(processExcelResult(range.values));
 };
-const LoginPage = ({ setItems, setAuth, tokenClient, setTokenClient }) => {
+const LoginPage = ({ setItems, setAuth, setTokenClient, sheetName, setSheetName }) => {
 	const [gapiInited, setGapiInited] = useState(false);
 	const [gsiInited, setGsiInited] = useState(false);
-	const [sheetName, setSheetName] = useState('');
 	/**
 	 *  Sign in the user upon button click.
 	 */
@@ -84,9 +83,9 @@ const LoginPage = ({ setItems, setAuth, tokenClient, setTokenClient }) => {
 				setAuth(resp);
 				listMajors(sheetName, (items) => {
 					setItems(items);
-				})
+				});
 			},
-		})
+		});
 		setTokenClient(client);
 		client.requestAccessToken({ prompt: '' });
 	};
@@ -109,9 +108,9 @@ const LoginPage = ({ setItems, setAuth, tokenClient, setTokenClient }) => {
 		const gsiScript = document.createElement('script');
 		gsiScript.src = 'https://accounts.google.com/gsi/client';
 		gsiScript.async = true;
-		gsiScript.onload = () => setGsiInited(true);;
+		gsiScript.onload = () => setGsiInited(true);
 		document.body.appendChild(gsiScript);
-	}, [setItems, sheetName, setAuth, setTokenClient]);
+	}, [setItems, setAuth, setTokenClient]);
 	return (
 		gsiInited &&
 		gapiInited && (

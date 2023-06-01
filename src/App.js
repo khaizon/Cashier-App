@@ -20,11 +20,12 @@ function App() {
 	const [auth, setAuth] = useState({});
 	const [itemData, setItemData] = useState([]);
 	const [tokenClient, setTokenClient] = useState()
+	const [sheetName, setSheetName] = useState('')
 
 	return (
 		<ThemeProvider theme={theme}>
 			{Object.keys(auth).length === 0 && (
-				<LoginPage setItems={setItemData} setAuth={setAuth} tokenClient={tokenClient} setTokenClient={(TC)=>setTokenClient(TC)}/>
+				<LoginPage setItems={setItemData} setAuth={setAuth} setTokenClient={(TC)=>setTokenClient(TC)} sheetName={sheetName} setSheetName={setSheetName}/>
 			)}
 			{Object.keys(auth).length !== 0 && (
 				<Cashier
@@ -37,7 +38,7 @@ function App() {
 						setReceived,
 						height,
 						itemData,
-						sheetName:"maomao",
+						sheetName,
 						tokenClient
 					}}
 				/>
