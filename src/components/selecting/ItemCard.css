@@ -1,6 +1,6 @@
 .itemCard {
-  display: flex;
-  overflow: hidden;
+  display: grid;
+  grid-template-columns: 100px 1fr;
   font-weight: 500;
   filter: brightness(100%);
   -webkit-filter: brightness(100%);
@@ -8,13 +8,12 @@
   box-shadow: 0px 0.1rem 0.3rem #e0e0e0;
   transition: all 0.3s;
   cursor: pointer;
+  overflow: hidden;
 }
 
 .itemCard img {
-  min-width: 100px;
-  min-height: 100px;
-  max-width: 100px;
-  max-height: 100px;
+  width: 100px;
+  height: 100px;
   object-fit: cover;
 }
 
@@ -29,6 +28,7 @@
   box-shadow: 0px 0.5rem 2rem -0.5rem #e0e0e0;
   transform: scale(1.03);
 }
+
 .itemCard:active {
   filter: brightness(96%);
   -webkit-filter: brightness(96%);

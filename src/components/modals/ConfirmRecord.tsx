@@ -79,7 +79,7 @@ const ConfirmRecord = () => {
           <thead>
             <tr>
               <th>S/N</th>
-              <th>Name</th>
+              <th align='left'>Name</th>
               <th>Price</th>
               <th>Qty</th>
               <th>Subtotal</th>
@@ -89,12 +89,12 @@ const ConfirmRecord = () => {
             {items.map(({ title, quantity, price, subtotal }, idx) => (
               <tr key={idx}>
                 <td>{idx + 1}</td>
-                <td>{title}</td>
-                <td className="money">
+                <td align='left'>{title}</td>
+                <td align="right" className="money">
                   <div>{formatter.format(price)}</div>
                 </td>
                 <td>{quantity}</td>
-                <td className="money">
+                <td align="right" className="money">
                   <div>{formatter.format(subtotal)}</div>
                 </td>
               </tr>

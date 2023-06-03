@@ -29,7 +29,7 @@ const ResetIcon = () => (
     <svg width="24" height="24" xmlns="http://www.w3.org/2000/svg" fillRule="evenodd" clipRule="evenodd" viewBox="0 0 24 24">
       <path d="M19 24h-14c-1.104 0-2-.896-2-2v-16h18v16c0 1.104-.896 2-2 2zm-7-10.414l3.293-3.293 1.414 1.414-3.293 3.293 3.293 3.293-1.414 1.414-3.293-3.293-3.293 3.293-1.414-1.414 3.293-3.293-3.293-3.293 1.414-1.414 3.293 3.293zm10-8.586h-20v-2h6v-1.5c0-.827.673-1.5 1.5-1.5h5c.825 0 1.5.671 1.5 1.5v1.5h6v2zm-8-3h-4v1h4v-1z" />
     </svg>
-    &nbsp;RESET
+    &nbsp;&nbsp;RESET
   </div>
 );
 
@@ -48,7 +48,7 @@ const WriteIcon = () => (
         fillRule="nonzero"
       />
     </svg>
-    &nbsp;RECORD
+    &nbsp;&nbsp;RECORD
   </div>
 );
 
@@ -57,7 +57,7 @@ const CalculateIcon = () => (
     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
       <path d="M13 24h6c2.762 0 5-2.239 5-5v-6h-11v11zm3-7h5v1h-5v-1zm0 2h5v1h-5v-1zm-16 0c0 2.761 2.239 5 5 5h6v-11h-11v6zm3-1h2v-2h1v2h2v1h-2v2h-1v-2h-2v-1zm16-18h-6v11h11v-6c0-2.761-2.238-5-5-5zm-.5 3c.276 0 .5.224.5.5s-.224.5-.5.5-.5-.224-.5-.5.224-.5.5-.5zm0 5c-.276 0-.5-.224-.5-.5s.224-.5.5-.5.5.224.5.5-.224.5-.5.5zm2.5-2h-5v-1h5v1zm-21-1v6h11v-11h-6c-2.761 0-5 2.239-5 5zm6.914-1.622l.708.708-1.415 1.414 1.414 1.414-.707.707-1.414-1.414-1.414 1.414-.708-.707 1.414-1.414-1.414-1.414.707-.707 1.415 1.414 1.414-1.415z" />
     </svg>
-    &nbsp;CHANGE
+    &nbsp;&nbsp;CHANGE
   </div>
 );
 
@@ -105,7 +105,7 @@ const SelectedItems = () => {
                       <DeleteIcon />
                     </button>
                   </td>
-                  <td className="subtotal money">
+                  <td align="right" className="subtotal money">
                     <div>{formatter.format(subtotal)}</div>
                   </td>
                 </tr>
