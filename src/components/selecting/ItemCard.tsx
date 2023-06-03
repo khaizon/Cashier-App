@@ -24,7 +24,7 @@ const ItemCard = ({ item: { img, title, price, id }, bg, fg }: ItemCardProps) =>
         <div className="name" style={{ color: fg }}>
           {title}
         </div>
-        <div className="price">{formatter.format(price)}</div>
+        <div className="price money">{formatter.format(price)}</div>
       </div>
     </div>
   );

@@ -27,7 +27,7 @@ const ConfirmRecord = () => {
   const tokenClient = useContext(TokenContext);
 
   const recordPayment = () => {
-    var params = {
+    const params = {
       // The ID of the spreadsheet to update.
       spreadsheetId: import.meta.env.VITE_SPREADSHEET_ID, // TODO: Update placeholder value.
 
@@ -44,7 +44,7 @@ const ConfirmRecord = () => {
 
     const orderID = generateID(4);
 
-    var valueRangeBody = {
+    const valueRangeBody = {
       // TODO: Add desired properties to the request body.
       values: items.map((item) => [
         orderID,
@@ -58,7 +58,7 @@ const ConfirmRecord = () => {
       ]),
     };
 
-    var request = window.gapi.client.sheets.spreadsheets.values.append(params, valueRangeBody);
+    const request = window.gapi.client.sheets.spreadsheets.values.append(params, valueRangeBody);
     request.then(
       function () {
         // TODO: Change code below to process the `response` object:
@@ -91,9 +91,9 @@ const ConfirmRecord = () => {
               <tr key={idx}>
                 <td>{idx + 1}</td>
                 <td>{title}</td>
-                <td>{formatter.format(price)}</td>
+                <td className='money'><div>{formatter.format(price)}</div></td>
                 <td>{quantity}</td>
-                <td>{formatter.format(subtotal)}</td>
+                <td className='money'><div>{formatter.format(subtotal)}</div></td>
               </tr>
             ))}
           </tbody>
@@ -102,7 +102,7 @@ const ConfirmRecord = () => {
               <td colSpan={4} align="right">
                 Total:{' '}
               </td>
-              <td>{formatter.format(total)}</td>
+              <td className='money'>{formatter.format(total)}</td>
             </tr>
           </tfoot>
         </table>

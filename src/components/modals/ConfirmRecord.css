@@ -26,6 +26,13 @@
   color: var(--pink500);
 }
 
+.money div {
+  width: 100%;
+  box-sizing: border-box;
+  padding-right: 1rem;
+  text-align: end;
+}
+
 .denseTable > table > tfoot > tr {
   border-top: thin solid var(--pink500);
   font-size: 1.3em;

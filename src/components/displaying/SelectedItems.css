@@ -82,7 +82,7 @@
   line-height: 0.5em;
 }
 
-.cashierStateTable > tbody > tr > td > div {
+.qty {
   background-color: var(--pink300);
   color: white;
   height: 2.2rem;
@@ -119,7 +119,9 @@
   font-size: 0.9em;
 }
 
-.subtotal {
+.subtotal div{
+	all:i;
+	background-color: none;
   font-size: 0.9em;
   font-weight: 500;
 }
@@ -148,4 +150,8 @@
   line-height: 2em;
   background-color: var(--pink50);
   border-radius: 0.5rem;
+}
+
+.money {
+	font-family: 'Roboto Mono';
 }

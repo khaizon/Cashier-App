@@ -91,8 +91,8 @@ const SelectedItems = () => {
                     <img className="cashierStateItemImg" src={img} width={'30px'} />
                   </td>
                   <td align="left">{title}</td>
-                  <td className="price">{formatter.format(price)}</td>
-                  <td>{quantity > 1 ? <div>{quantity}</div> : quantity}</td>
+                  <td className="price money">{formatter.format(price)}</td>
+                  <td>{quantity > 1 ? <div className='qty'>{quantity}</div> : quantity}</td>
                   <td>
                     <button
                       onClick={() =>
@@ -105,7 +105,7 @@ const SelectedItems = () => {
                       <DeleteIcon />
                     </button>
                   </td>
-                  <td className="subtotal">{formatter.format(subtotal)}</td>
+                  <td className="subtotal money"><div>{formatter.format(subtotal)}</div></td>
                 </tr>
               ))}
             {items.length === 0 && (
@@ -122,7 +122,7 @@ const SelectedItems = () => {
                 <td colSpan={4} align="right">
                   Total:
                 </td>
-                <td colSpan={2}>{formatter.format(total)}</td>
+                <td colSpan={2} className='money'>{formatter.format(total)}</td>
               </tr>
             </tfoot>
           )}
