@@ -13,7 +13,7 @@ input {
   padding: 0.6rem;
   border: 1px solid var(--pink100);
   caret-color: var(--pink150);
-  color: var(--pink500);
+  color: var(--pink50);
   border-radius: 0.4rem;
   text-align: center;
 }
@@ -27,5 +27,15 @@ input:focus {
 }
 
 input::placeholder {
-  color: var(--pink100);
+  color: var(--pink500);
+}
+
+@media (prefers-color-scheme: light) {
+  input {
+    color: var(--pink500);
+  }
+
+  input::placeholder {
+    color: var(--pink100);
+  }
 }

@@ -2,7 +2,7 @@
   height: min(70vh, 30rem);
   width: min(70vw, 30rem);
   overflow: auto;
-  background-color: white;
+  background-color: var(--grey820);
   padding: 1rem;
   box-sizing: border-box;
   border-radius: 0.5rem;
@@ -34,4 +34,10 @@
 .notesAdder button {
   font-size: 2em;
   padding: 0.2rem 1rem;
+}
+
+@media (prefers-color-scheme: light) {
+  .computeChangeContainer {
+    background-color: white;
+  }
 }

@@ -18,7 +18,7 @@ const ComputeChange = () => {
           <thead>
             <tr>
               <th>S/N</th>
-              <th align='left'>Name</th>
+              <th align="left">Name</th>
               <th>Price</th>
               <th>Qty</th>
               <th>Subtotal</th>
@@ -28,7 +28,7 @@ const ComputeChange = () => {
             {items.map(({ title, quantity, price, subtotal }, idx) => (
               <tr key={idx}>
                 <td>{idx + 1}</td>
-                <td align='left'>{title}</td>
+                <td align="left">{title}</td>
                 <td align="right" className="money">
                   <div>{formatter.format(price)}</div>
                 </td>

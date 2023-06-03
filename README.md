@@ -1,1 +1,1 @@
-# google-oauth-react
+# Cashier App

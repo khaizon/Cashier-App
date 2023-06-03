@@ -2,7 +2,7 @@
   max-height: min(70vh, 30rem);
   width: min(70vw, 30rem);
   overflow: auto;
-  background-color: white;
+  background-color: var(--grey820);
   padding: 1rem;
   box-sizing: border-box;
   border-radius: 0.5rem;
@@ -16,13 +16,14 @@
   border-collapse: collapse;
   font-size: 0.9em;
   min-width: 400px;
-  box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
+  background-color: var(--grey860);
   border-radius: 0.5rem;
+  overflow: hidden;
 }
 
 .denseTable thead tr {
-  background-color: var(--pink50);
-  color: var(--pink500);
+  background-color: var(--pink800);
+  color: var(--pink150);
 }
 
 .money div {
@@ -81,4 +82,20 @@
 .success:focus {
   outline: none;
   border: none;
+}
+
+@media (prefers-color-scheme: light) {
+  .confirmRecordContainer {
+    background-color: white;
+  }
+
+  .denseTable table {
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
+    background-color: white;
+  }
+
+  .denseTable thead tr {
+    background-color: var(--pink50);
+    color: var(--pink500);
+  }
 }

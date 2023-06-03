@@ -7,15 +7,17 @@ type ItemCardProps = {
   item: Item;
   bg: string;
   fg: string;
+  mode: string;
 };
 
-const ItemCard = ({ item: { img, title, price, id }, bg, fg }: ItemCardProps) => {
+const ItemCard = ({ item: { img, title, price, id }, bg, fg, mode }: ItemCardProps) => {
   const { dispatch } = useContext(CashierContext);
+
   return (
     <div
       className="itemCard"
       style={{
-        backgroundColor: bg,
+        backgroundColor: mode === 'light' ? bg : 'var(--grey820)',
       }}
       onClick={() => dispatch({ type: 'ADD', payload: { img, title, price, id } })}
     >
