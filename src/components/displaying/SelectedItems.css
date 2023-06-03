@@ -119,9 +119,9 @@
   font-size: 0.9em;
 }
 
-.subtotal div{
-	all:i;
-	background-color: none;
+.subtotal div {
+  all: i;
+  background-color: none;
   font-size: 0.9em;
   font-weight: 500;
 }
@@ -153,5 +153,5 @@
 }
 
 .money {
-	font-family: 'Roboto Mono';
+  font-family: 'Roboto Mono';
 }

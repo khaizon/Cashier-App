@@ -21,7 +21,7 @@ const ConfirmRecord = () => {
   } = useContext(CashierContext);
 
   const [payment, setPayment] = useState(0);
-  const [recorded, setRecorded] = useState(false);
+  const [recordState, setRecordState] = useState('record');
   const [error, setError] = useState('');
   const sheetName = useContext(SheetContext);
   const tokenClient = useContext(TokenContext);
@@ -63,11 +63,10 @@ const ConfirmRecord = () => {
       function () {
         // TODO: Change code below to process the `response` object:
         setError('');
-        setRecorded(true);
+        setRecordState('success');
       },
       function () {
         setError('Please try again!');
-
         tokenClient.requestAccessToken();
       }
     );
@@ -91,9 +90,13 @@ const ConfirmRecord = () => {
               <tr key={idx}>
                 <td>{idx + 1}</td>
                 <td>{title}</td>
-                <td className='money'><div>{formatter.format(price)}</div></td>
+                <td className="money">
+                  <div>{formatter.format(price)}</div>
+                </td>
                 <td>{quantity}</td>
-                <td className='money'><div>{formatter.format(subtotal)}</div></td>
+                <td className="money">
+                  <div>{formatter.format(subtotal)}</div>
+                </td>
               </tr>
             ))}
           </tbody>
@@ -102,7 +105,7 @@ const ConfirmRecord = () => {
               <td colSpan={4} align="right">
                 Total:{' '}
               </td>
-              <td className='money'>{formatter.format(total)}</td>
+              <td className="money">{formatter.format(total)}</td>
             </tr>
           </tfoot>
         </table>
@@ -120,12 +123,12 @@ const ConfirmRecord = () => {
         <div>
           <button
             onClick={() => {
-              setRecorded(false);
+              setRecordState('recording');
               recordPayment();
             }}
-            className={recorded ? 'success' : ''}
+            className={recordState}
           >
-            Record{recorded ? ' Success' : ''}
+            {recordState}!
           </button>
         </div>
       </div>

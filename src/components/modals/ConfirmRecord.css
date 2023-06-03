@@ -1,5 +1,5 @@
 .confirmRecordContainer {
-  height: min(70vh, 30rem);
+  max-height: min(70vh, 30rem);
   width: min(70vw, 30rem);
   overflow: auto;
   background-color: white;
@@ -53,6 +53,21 @@
   justify-content: center;
   align-items: center;
   gap: 1rem;
+}
+
+.recording {
+  background-color: rgb(255, 253, 210);
+  color: rgb(112, 112, 112);
+}
+
+.recording:hover {
+  border: thin solid rgb(232, 230, 169);
+  outline: none;
+}
+
+.recording:focus {
+  outline: none;
+  border: none;
 }
 
 .success {

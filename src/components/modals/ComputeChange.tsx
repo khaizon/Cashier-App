@@ -29,9 +29,14 @@ const ComputeChange = () => {
               <tr key={idx}>
                 <td>{idx + 1}</td>
                 <td>{title}</td>
-                <td className='money'><div>{formatter.format(price)}</div></td>
+                <td className="money">
+                  <div>{formatter.format(price)}</div>
+                </td>
                 <td>{quantity}</td>
-                <td className='money'> <div>{formatter.format(subtotal)}</div></td>
+                <td className="money">
+                  {' '}
+                  <div>{formatter.format(subtotal)}</div>
+                </td>
               </tr>
             ))}
           </tbody>
@@ -40,7 +45,7 @@ const ComputeChange = () => {
               <td colSpan={4} align="right">
                 Total:
               </td>
-              <td className='money'>{formatter.format(total)}</td>
+              <td className="money">{formatter.format(total)}</td>
             </tr>
             <tr style={{ fontSize: '1.5em' }}>
               <td colSpan={4} align="right">
@@ -52,7 +57,9 @@ const ComputeChange = () => {
               <td colSpan={4} align="right">
                 Balance:
               </td>
-              <td className='money'>{received - total < 0 ? `(${formatter.format(total - received)})` : formatter.format(received - total)}</td>
+              <td className="money">
+                {received - total < 0 ? `(${formatter.format(total - received)})` : formatter.format(received - total)}
+              </td>
             </tr>
           </tfoot>
         </table>
