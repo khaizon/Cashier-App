@@ -50,6 +50,7 @@
 
 .name {
   overflow: hidden;
+  word-break:break-all; 
   display: -webkit-box;
   -webkit-line-clamp: 2; /* number of lines to show */
   line-clamp: 2;
