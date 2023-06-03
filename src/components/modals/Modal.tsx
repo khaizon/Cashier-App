@@ -1,6 +1,5 @@
 import { Dispatch, ReactNode, SetStateAction, useRef } from "react";
 import "./Modal.css";
-import useWindowDimensions from "../../shared/hooks/useWindowDimensions";
 
 type ModalProps = {
 	visible: boolean;
@@ -10,14 +9,12 @@ type ModalProps = {
 
 export default function Modal({ visible, setVisible, children }: ModalProps) {
 	const modalRef = useRef<HTMLDivElement>(null);
-	const {width, height} = useWindowDimensions();
 	return (
 		<>
 			{visible ? (
 				<div
 					className="modal"
           dir="row"
-					style={{width,height}}
 					onClick={(e) => {
 						if (!modalRef.current) {
 							return;

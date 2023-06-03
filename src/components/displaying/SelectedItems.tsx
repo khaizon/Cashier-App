@@ -5,7 +5,6 @@ import { formatter } from "../../shared/functions/formatter";
 import Modal from "../modals/Modal";
 import ConfirmRecord from "../modals/ConfirmRecord";
 import ComputeChange from "../modals/ComputeChange";
-import useWindowDimensions from "../../shared/hooks/useWindowDimensions";
 
 const DeleteIcon = () => (
 	<div className="iconContainer">
@@ -67,9 +66,9 @@ const SelectedItems = () => {
 	} = useContext(CashierContext);
 	const [showDialog, setShowDialog] = useState(false);
 	const [showComputeChange, setShowComputeChange] = useState(false);
-	const {height} = useWindowDimensions();
+
 	return (
-		<div className="selectedItemsContainer" style={{height}}>
+		<div className="selectedItemsContainer">
 			<div className="tableContainer">
 				<table className="cashierStateTable">
 					<thead>
