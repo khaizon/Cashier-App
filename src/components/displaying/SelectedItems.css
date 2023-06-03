@@ -20,14 +20,13 @@
   box-sizing: border-box;
   border-radius: 0.5rem;
   max-height: 80%;
-  overflow: auto;
+  overflow: hidden;
 }
 
 .cashierStateTable {
   border-collapse: collapse;
   width: 100%;
   background-color: var(--grey860);
-  overflow-y: overlay;
 }
 
 .cashierStateTable > thead {
