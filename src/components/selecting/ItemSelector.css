@@ -1,16 +1,16 @@
 .itemSelector {
-	padding: 0.5rem;
+  padding: 0.5rem;
   overflow: auto;
 }
 
 .categoryTitle {
-	font-weight: 500;
-	font-size: 1.3em;
-	line-height: 1.7em;
+  font-weight: 500;
+  font-size: 1.3em;
+  line-height: 1.7em;
 }
 
 .itemsGrid {
-	display: grid;
-	grid-template-columns: 1fr 1fr;
-	gap: 0.5rem;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
 }

@@ -1,141 +1,151 @@
 .selectedItemsContainer {
-	box-sizing: border-box;
-	padding: 0.5rem;
-	width: 100%;
-	height: 100%;
-	display: flex;
-	flex-direction: column;
-	justify-content: space-between;
-	overflow: auto;
+  box-sizing: border-box;
+  padding: 0.5rem;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  overflow: auto;
 }
 
 .cashierStateItemImg {
-	width: 2.7rem;
-	height: 2.7rem;
-	object-fit: cover;
-	border-radius: 0.3rem;
+  width: 2.7rem;
+  height: 2.7rem;
+  object-fit: cover;
+  border-radius: 0.3rem;
 }
 
 .tableContainer {
-	box-sizing: border-box;
-	border-radius: 0.5rem;
-	box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
-	max-height: 80%;
-	overflow: auto;
+  box-sizing: border-box;
+  border-radius: 0.5rem;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
+  max-height: 80%;
+  overflow: auto;
 }
 
 .cashierStateTable {
-	border-collapse: collapse;
-	width: 100%;
+  border-collapse: collapse;
+  width: 100%;
 }
 
 .cashierStateTable > thead {
-	font-size: 1.2em;
-	line-height: 1.2em;
+  font-size: 1.2em;
+  line-height: 1.2em;
 }
 .empty {
-	width: 100%;
-	display: flex;
-	justify-content: center;
-	padding: 1rem;
-	text-align: center;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  padding: 1rem;
+  text-align: center;
 }
 
 .cashierStateTable > thead > tr {
-	border-bottom: thin solid var(--pink150);
+  border-bottom: thin solid var(--pink150);
 }
 .cashierStateTable > thead > tr > th {
-	background-color: var(--pink50);
-	padding: 0.8rem 0.3rem;
-	position: sticky;
-	top: 0;
+  background-color: var(--pink50);
+  padding: 0.8rem 0.3rem;
+  position: sticky;
+  top: 0;
 }
 
 .cashierStateTable > tbody {
-	font-size: 1.2em;
-	line-height: 1.2em;
-	white-space: nowrap;
-	overflow: hidden;
-	text-overflow: ellipsis;
+  font-size: 1.2em;
+  line-height: 1.2em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .cashierStateTable > tbody > tr {
-	border-bottom: thin solid var(--pink100);
+  border-bottom: thin solid var(--pink100);
+}
+
+.cashierStateTable > tfoot > tr {
+  font-size: 2em;
+  line-height: 2em;
+  border-top: thin solid var(--pink500);
+  box-sizing: content-box;
+  position: sticky;
+  background-color: white;
+  bottom: 0;
 }
 .cashierStateTable > tbody > tr:last-of-type {
-	border-bottom: none;
+  border-bottom: none;
 }
 
 .cashierStateTable > tbody > tr > td {
-	box-sizing: border-box;
-	padding: 0.3rem;
-	line-height: 0.5em;
+  box-sizing: border-box;
+  padding: 0.3rem;
+  line-height: 0.5em;
 }
 
 .cashierStateTable > tbody > tr > td > div {
-	background-color: var(--pink300);
-	color: white;
-	height: 2.2rem;
-	border-radius: 1rem;
-	padding: 0.2rem;
-	display: flex;
-	justify-content: center;
-	align-items: center;
-	font-weight: 500;
+  background-color: var(--pink300);
+  color: white;
+  height: 2.2rem;
+  border-radius: 1rem;
+  padding: 0.2rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-weight: 500;
 }
 
 .cashierStateTable svg {
-	fill: var(--pink300);
-	width: 1.8rem;
-	height: 1.8rem;
+  fill: var(--pink300);
+  width: 1.8rem;
+  height: 1.8rem;
 }
 
 .cashierStateTable button {
-	width: 3rem;
-	height: 3rem;
-	border-radius: 1rem;
-	margin: 0px;
-	padding: 0px;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 1rem;
+  margin: 0px;
+  padding: 0px;
 }
 
 .iconContainer {
-	display: flex;
-	justify-content: center;
-	align-items: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
   font-weight: 500;
 }
 
 .price {
-	font-size: 0.9em;
+  font-size: 0.9em;
 }
 
 .subtotal {
-	font-size: 0.9em;
-	font-weight: 500;
+  font-size: 0.9em;
+  font-weight: 500;
 }
 
 .resultContainer {
-	display: flex;
-	align-items: flex-end;
-	justify-content: space-between; 
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
 }
 
 .resultContainer button {
-	padding: 1rem;
+  padding: 1rem;
 }
 
 .resultContainer svg {
-	height: 2rem;
-	width: 2rem;
-	fill: var(--pink300);
-	object-fit: contain;
+  height: 2rem;
+  width: 2rem;
+  fill: var(--pink300);
+  object-fit: contain;
 }
 
 .totalDiv {
-	height: 2em;
-	width: 5em;
-	font-size: 2em;
-	line-height: 2em;
-	background-color: var(--pink50);
-	border-radius: 0.5rem;
+  height: 2em;
+  width: 5em;
+  font-size: 2em;
+  line-height: 2em;
+  background-color: var(--pink50);
+  border-radius: 0.5rem;
 }

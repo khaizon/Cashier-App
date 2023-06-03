@@ -1,50 +1,50 @@
 .confirmRecordContainer {
-	height: min(70vh, 30rem);
-	width: min(70vw, 30rem);
+  height: min(70vh, 30rem);
+  width: min(70vw, 30rem);
   overflow: auto;
-	background-color: white;
-	padding: 1rem;
-	box-sizing: border-box;
-	border-radius: 0.5rem;
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	gap: 1rem;
+  background-color: white;
+  padding: 1rem;
+  box-sizing: border-box;
+  border-radius: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
 }
 
 .denseTable table {
-	border-collapse: collapse;
-	font-size: 0.9em;
-	font-family: sans-serif;
-	min-width: 400px;
-	box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
-	border-radius: 0.5rem;
+  border-collapse: collapse;
+  font-size: 0.9em;
+  font-family: sans-serif;
+  min-width: 400px;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
+  border-radius: 0.5rem;
 }
 
 .denseTable thead tr {
-	background-color: var(--pink50);
-	color: var(--pink500);
+  background-color: var(--pink50);
+  color: var(--pink500);
 }
 
 .denseTable > table > tfoot > tr {
-	border-top: thin solid var(--pink500);
-	font-size: 1.3em;
-	font-weight: 500;
+  border-top: thin solid var(--pink500);
+  font-size: 1.3em;
+  font-weight: 500;
 }
 
 .confirmRecordContainer > div {
-	display: flex;
-	flex-direction: column;
-	justify-content: center;
-	align-items: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
   width: 100%;
   gap: 0.5rem;
 }
 
 .confirmRecordContainer > div > div {
-	display: flex;
-	justify-content: center;
-	align-items: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
   gap: 1rem;
 }
 
