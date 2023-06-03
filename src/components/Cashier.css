@@ -1,0 +1,7 @@
+.cashierGrid {
+  display: grid;
+  grid-template-columns: 50% 1fr;
+  height: 100%;
+  overflow: hidden;
+  overflow-x: auto;
+}

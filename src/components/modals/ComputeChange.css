@@ -1,0 +1,37 @@
+.computeChangeContainer {
+  height: min(70vh, 30rem);
+	width: min(70vw, 30rem);
+  overflow: auto;
+	background-color: white;
+	padding: 1rem;
+	box-sizing: border-box;
+	border-radius: 0.5rem;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 1rem;
+}
+
+.cashReceived{
+  background-color: var(--pink500);
+  color: var(--pink50)
+}
+
+.denomsGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.4rem
+}
+
+.notesAdder{
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem
+}
+
+.notesAdder button {
+  font-size: 2em;
+  padding: 0.2rem 1rem;
+}

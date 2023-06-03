@@ -1,0 +1,62 @@
+.itemCard {
+	display: flex;
+	overflow: hidden;
+	font-weight: 500;
+	filter: brightness(100%);
+	-webkit-filter: brightness(100%);
+	border-radius: 0.5rem;
+	box-shadow: 0px 0.1rem 0.3rem #e0e0e0;
+	transition: all 0.3s;
+	cursor: pointer;
+}
+
+.itemCard img {
+	min-width: 100px;
+	min-height: 100px;
+	max-width: 100px;
+	max-height: 100px;
+  object-fit: cover;
+}
+
+.itemCard:hover {
+	filter: brightness(102%);
+	-webkit-filter: brightness(102%);
+	-webkit-transition: all 0.3s ease;
+	-moz-transition: all 0.3s ease;
+	-o-transition: all 0.3s ease;
+	-ms-transition: all 0.3s ease;
+	transition: all 0.3s ease;
+	box-shadow: 0px 0.5rem 2rem -0.5rem #e0e0e0;
+	transform: scale(1.03);
+}
+.itemCard:active {
+  filter: brightness(96%);
+	-webkit-filter: brightness(96%);
+  box-shadow: 0px 4px 8px #e0e0e0;
+  transform: scale(.98)
+}
+
+.itemNameAndPrice {
+	width: 100%;
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
+	align-items: start;
+	text-align: start;
+	font-size: 1.25em;
+	box-sizing: border-box;
+	padding: 0.5rem;
+}
+
+.name {
+	overflow: hidden;
+	display: -webkit-box;
+	-webkit-line-clamp: 2; /* number of lines to show */
+	line-clamp: 2;
+	-webkit-box-orient: vertical;
+}
+
+.price {
+	align-self: end;
+	color: var(--pink300);
+}
