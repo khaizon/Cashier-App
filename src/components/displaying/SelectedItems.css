@@ -20,7 +20,7 @@
   box-sizing: border-box;
   border-radius: 0.5rem;
   max-height: 80%;
-  overflow: hidden;
+  overflow: auto;
 }
 
 .cashierStateTable {
