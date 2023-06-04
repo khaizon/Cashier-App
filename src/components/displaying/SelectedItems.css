@@ -49,6 +49,7 @@
 .cashierStateTable > thead > tr > th {
   background-color: var(--pink800);
   padding: 0.8rem 0.3rem;
+  position: -webkit-sticky;
   position: sticky;
   top: 0;
 }
@@ -59,6 +60,21 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+table thead tr:first-child th:first-child {
+  border-top-left-radius: 0.5rem;
+}
+table thead tr:first-child th:last-child {
+  border-top-right-radius: 0.5rem;
+}
+
+table tfoot tr:last-child td:first-child {
+  border-bottom-left-radius: 0.5rem;
+}
+  
+table tfoot tr:last-child td:last-child {
+  border-bottom-right-radius: 0.5rem;
 }
 
 .cashierStateTable > tbody > tr {
@@ -74,11 +90,13 @@
   line-height: 2em;
   border-top: thin solid var(--pink500);
   box-sizing: content-box;
+  position: -webkit-sticky;
   position: sticky;
   background-color: var(--grey820);
   color: var(--pink50);
   bottom: 0;
 }
+
 .cashierStateTable > tbody > tr:last-of-type {
   border-bottom: none;
 }
@@ -170,14 +188,18 @@
   .cashierStateTable {
     background-color: hsl(0, 0%, 100%);
   }
-  .cashierStateTable > thead > tr {
+  .cashierStateTable  thead  tr {
     border-bottom: thin solid var(--pink300);
   }
+
+  .cashierStateTable > tbody > tr {
+    border-bottom: thin solid var(--pink150);
+  }
+
   .cashierStateTable > thead > tr > th {
     background-color: var(--pink50);
     color: var(--pink500);
   }
-
   .cashierStateTable > tfoot > tr {
     border-top: thin solid var(--pink500);
     background-color: white;

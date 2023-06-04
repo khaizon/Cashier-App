@@ -68,7 +68,6 @@ const SelectedItems = () => {
   } = useContext(CashierContext);
   const [showDialog, setShowDialog] = useState(false);
   const [showComputeChange, setShowComputeChange] = useState(false);
-
   return (
     <div className="selectedItemsContainer">
       <div className="tableContainer">
