@@ -45,13 +45,13 @@ const ComputeChange = () => {
               <td colSpan={4} align="right">
                 Total:
               </td>
-              <td className="money">{formatter.format(total)}</td>
+              <td className="money">({formatter.format(total)})</td>
             </tr>
             <tr style={{ fontSize: '1.5em' }}>
               <td colSpan={4} align="right">
                 Cash Received:
               </td>
-              <td className="cashReceived money">({formatter.format(received)})</td>
+              <td className="cashReceived money">{formatter.format(received)}</td>
             </tr>
             <tr>
               <td colSpan={4} align="right">

@@ -67,6 +67,7 @@ const ConfirmRecord = () => {
       },
       function () {
         setError('Please try again!');
+        setRecordState('record');
         tokenClient.requestAccessToken();
       }
     );
@@ -126,6 +127,7 @@ const ConfirmRecord = () => {
               setRecordState('recording');
               recordPayment();
             }}
+            disabled = {recordState === 'recording'}
             className={recordState}
           >
             {recordState}!
