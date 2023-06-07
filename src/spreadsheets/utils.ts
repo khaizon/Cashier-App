@@ -13,10 +13,10 @@ type CategoryRow = {
  *  to an array of Category Items
  *  */
 
-const processExcelResult = (rangeValues: Array<Array<string>>): Array<CategoryItem> => {
-  const columnNames: Array<string> = rangeValues[0];
+const processExcelResult = (rangeValues: string[][]): CategoryItem[] => {
+  const columnNames: string[] = rangeValues[0];
 
-  const inputRows: Array<CategoryRow> = rangeValues.slice(1).map((row) => {
+  const inputRows: CategoryRow[] = rangeValues.slice(1).map((row) => {
     const currRow: CategoryRow = columnNames.reduce((acc, columnName, n) => {
       let value: string | number = row[n];
       if (columnName === 'price') {
@@ -28,7 +28,7 @@ const processExcelResult = (rangeValues: Array<Array<string>>): Array<CategoryIt
     return currRow;
   });
 
-  const result: Array<CategoryItem> = inputRows.reduce((acc: Array<CategoryItem>, row) => {
+  const result: CategoryItem[] = inputRows.reduce((acc: CategoryItem[], row) => {
     const { category, palette1, palette2, palette3, ...item } = row;
     const existingCategory = acc.find((item) => item.category === category);
 

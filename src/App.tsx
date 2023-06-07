@@ -10,7 +10,7 @@ export const TokenContext = createContext<google.accounts.oauth2.TokenClient>({}
 function App() {
   const [sheetName, setSheetName] = useState('maomao');
   const [tokenClient, setTokenClient] = useState<google.accounts.oauth2.TokenClient>();
-  const [categoryItems, setCategoryItems] = useState<Array<CategoryItem>>([]);
+  const [categoryItems, setCategoryItems] = useState<CategoryItem[]>([]);
 
   return (
     <>

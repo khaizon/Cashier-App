@@ -10,7 +10,7 @@ type CategoryItem = {
   palette1: string;
   palette2: string;
   palette3: string;
-  items: Array<Item>;
+  items: Item[];
 };
 
 type SelectedItem = {
