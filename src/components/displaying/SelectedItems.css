@@ -72,7 +72,7 @@ table thead tr:first-child th:last-child {
 table tfoot tr:last-child td:first-child {
   border-bottom-left-radius: 0.5rem;
 }
-  
+
 table tfoot tr:last-child td:last-child {
   border-bottom-right-radius: 0.5rem;
 }
@@ -188,7 +188,7 @@ table tfoot tr:last-child td:last-child {
   .cashierStateTable {
     background-color: hsl(0, 0%, 100%);
   }
-  .cashierStateTable  thead  tr {
+  .cashierStateTable thead tr {
     border-bottom: thin solid var(--pink300);
   }
 

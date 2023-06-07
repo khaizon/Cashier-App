@@ -1,4 +1,4 @@
-interface CategoryRow {
+type CategoryRow = {
   category: string;
   palette1: string;
   palette2: string;
@@ -7,7 +7,7 @@ interface CategoryRow {
   img: string;
   title: string;
   price: number;
-}
+};
 
 /** convert range values [[col names], [row1], [row2], ...]
  *  to an array of Category Items
@@ -22,7 +22,8 @@ const processExcelResult = (rangeValues: Array<Array<string>>): Array<CategoryIt
       if (columnName === 'price') {
         value = parseFloat(value);
       }
-      return { ...acc, [columnName]: value };
+      (acc as any)[columnName] = value;
+      return acc;
     }, {} as CategoryRow);
     return currRow;
   });

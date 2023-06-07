@@ -127,7 +127,7 @@ const ConfirmRecord = () => {
               setRecordState('recording');
               recordPayment();
             }}
-            disabled = {recordState === 'recording'}
+            disabled={recordState === 'recording'}
             className={recordState}
           >
             {recordState}!
