@@ -1,4 +1,4 @@
-import { createContext, useReducer } from 'react';
+import { FC, createContext, useReducer } from 'react';
 import './Cashier.css';
 import ItemSelector from './selecting/ItemSelector';
 import SelectedItems from './displaying/SelectedItems';
@@ -63,7 +63,7 @@ export const CashierContext = createContext<{
   dispatch: () => null,
 });
 
-const Cashier = ({ categoryItems }: CashierProps) => {
+const Cashier: FC<CashierProps> = ({ categoryItems }) => {
   const [state, dispatch] = useReducer(cashierStateReducer, {
     items: [],
     total: 0,

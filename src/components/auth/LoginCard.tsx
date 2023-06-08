@@ -1,4 +1,4 @@
-import { Dispatch, SetStateAction, useContext, useEffect, useState } from 'react';
+import { Dispatch, FC, SetStateAction, useContext, useEffect, useState } from 'react';
 
 import './LoginCard.css';
 import googleAPIGetRangeValues from '../../spreadsheets/utils';
@@ -12,7 +12,7 @@ type LoginCardProps = {
   setSheetName: Dispatch<SetStateAction<string>>;
 };
 
-const LoginCard = ({ setCategoryItems, setTokenClient, setSheetName }: LoginCardProps) => {
+const LoginCard: FC<LoginCardProps> = ({ setCategoryItems, setTokenClient, setSheetName }) => {
   const [gapiInited, setGapiInited] = useState(false);
   const [gsiInited, setGsiInited] = useState(false);
   const sheetName = useContext(SheetContext);
