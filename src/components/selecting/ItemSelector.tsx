@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { FC, useEffect, useState } from 'react';
 import ItemCard from './ItemCard';
 import './ItemSelector.css';
 import { hexToBrighterHSL } from '../../shared/functions/color';
@@ -7,7 +7,7 @@ type ItemSelectorProps = {
   categoryItems: CategoryItem[];
 };
 
-const ItemSelector = ({ categoryItems }: ItemSelectorProps) => {
+const ItemSelector : FC<ItemSelectorProps> = ({ categoryItems }) => {
   const [mode, setMode] = useState('light');
 
   const [selectableItems, setSelectableItems] = useState<CategoryItem[]>([]);

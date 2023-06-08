@@ -17,7 +17,7 @@ function App() {
       <SheetContext.Provider value={sheetName}>
         <TokenContext.Provider value={tokenClient as google.accounts.oauth2.TokenClient}>
           {!tokenClient && <LoginCard setCategoryItems={setCategoryItems} setSheetName={setSheetName} setTokenClient={setTokenClient} />}
-          <Cashier categoryItems={categoryItems} />
+          {tokenClient && <Cashier categoryItems={categoryItems} />}
         </TokenContext.Provider>
       </SheetContext.Provider>
     </>

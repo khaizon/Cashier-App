@@ -1,4 +1,4 @@
-import { useContext } from 'react';
+import { FC, useContext } from 'react';
 import './ItemCard.css';
 import { CashierContext } from '../Cashier';
 import { formatter } from '../../shared/functions/formatter';
@@ -10,7 +10,7 @@ type ItemCardProps = {
   mode: string;
 };
 
-const ItemCard = ({ item: { img, title, price, id }, bg, fg, mode }: ItemCardProps) => {
+const ItemCard : FC<ItemCardProps> = ({ item: { img, title, price, id }, bg, fg, mode }) => {
   const { dispatch } = useContext(CashierContext);
 
   return (

@@ -1,4 +1,4 @@
-import { Dispatch, ReactNode, SetStateAction, useRef } from 'react';
+import { Dispatch, FC, ReactNode, SetStateAction, useRef } from 'react';
 import './Modal.css';
 
 type ModalProps = {
@@ -7,7 +7,7 @@ type ModalProps = {
   children: ReactNode;
 };
 
-export default function Modal({ visible, setVisible, children }: ModalProps) {
+const Modal: FC<ModalProps> = ({ visible, setVisible, children }) => {
   const modalRef = useRef<HTMLDivElement>(null);
   return (
     <>
@@ -33,4 +33,6 @@ export default function Modal({ visible, setVisible, children }: ModalProps) {
       )}
     </>
   );
-}
+};
+
+export default Modal;
