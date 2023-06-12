@@ -1,6 +1,6 @@
 .computeChangeContainer {
-  height: min(70vh, 30rem);
-  width: min(70vw, 30rem);
+  height: min(90vh, 30rem);
+  width: min(90vw, 30rem);
   overflow: auto;
   background-color: var(--grey820);
   padding: 1rem;

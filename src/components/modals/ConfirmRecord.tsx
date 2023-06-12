@@ -68,7 +68,7 @@ const ConfirmRecord = () => {
       function () {
         setError('Please try again!');
         setRecordState('record');
-        tokenClient.requestAccessToken();
+        tokenClient?.requestAccessToken();
       }
     );
   };
@@ -103,10 +103,13 @@ const ConfirmRecord = () => {
           </tbody>
           <tfoot>
             <tr>
-              <td colSpan={4} align="right">
+              <td />
+              <td colSpan={2} align="right">
                 Total:{' '}
               </td>
-              <td className="money">{formatter.format(total)}</td>
+              <td colSpan={2} className="money">
+                {formatter.format(total)}
+              </td>
             </tr>
           </tfoot>
         </table>

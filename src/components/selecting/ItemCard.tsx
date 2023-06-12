@@ -10,7 +10,7 @@ type ItemCardProps = {
   mode: string;
 };
 
-const ItemCard : FC<ItemCardProps> = ({ item: { img, title, price, id }, bg, fg, mode }) => {
+const ItemCard: FC<ItemCardProps> = ({ item: { img, title, price, id }, bg, fg, mode }) => {
   const { dispatch } = useContext(CashierContext);
 
   return (

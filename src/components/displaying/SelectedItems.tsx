@@ -120,7 +120,9 @@ const SelectedItems = () => {
           {items.length > 0 && (
             <tfoot>
               <tr>
-                <td colSpan={4} align="right">
+                <td />
+                <td />
+                <td colSpan={2} align="right">
                   Total:
                 </td>
                 <td colSpan={2} className="money">

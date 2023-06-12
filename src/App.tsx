@@ -5,7 +5,7 @@ import Cashier from './components/Cashier';
 import LoginCard from './components/auth/LoginCard';
 
 export const SheetContext = createContext('maomao');
-export const TokenContext = createContext<google.accounts.oauth2.TokenClient>({} as google.accounts.oauth2.TokenClient);
+export const TokenContext = createContext<google.accounts.oauth2.TokenClient | undefined>({} as google.accounts.oauth2.TokenClient);
 
 function App() {
   const [sheetName, setSheetName] = useState('maomao');
@@ -15,7 +15,7 @@ function App() {
   return (
     <>
       <SheetContext.Provider value={sheetName}>
-        <TokenContext.Provider value={tokenClient as google.accounts.oauth2.TokenClient}>
+        <TokenContext.Provider value={tokenClient}>
           {!tokenClient && <LoginCard setCategoryItems={setCategoryItems} setSheetName={setSheetName} setTokenClient={setTokenClient} />}
           {tokenClient && <Cashier categoryItems={categoryItems} />}
         </TokenContext.Provider>

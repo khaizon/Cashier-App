@@ -42,22 +42,29 @@ const ComputeChange = () => {
           </tbody>
           <tfoot>
             <tr>
-              <td colSpan={4} align="right">
+              <td />
+              <td colSpan={2} align="right">
                 Total:
               </td>
-              <td className="money">({formatter.format(total)})</td>
+              <td colSpan={2} className="money">
+                ({formatter.format(total)})
+              </td>
             </tr>
             <tr style={{ fontSize: '1.5em' }}>
-              <td colSpan={4} align="right">
+              <td />
+              <td colSpan={2} align="right">
                 Cash Received:
               </td>
-              <td className="cashReceived money">{formatter.format(received)}</td>
+              <td colSpan={2} className="cashReceived money">
+                {formatter.format(received)}
+              </td>
             </tr>
             <tr>
-              <td colSpan={4} align="right">
+              <td />
+              <td colSpan={2} align="right">
                 Balance:
               </td>
-              <td className="money">
+              <td colSpan={2} className="money">
                 {received - total < 0 ? `(${formatter.format(total - received)})` : formatter.format(received - total)}
               </td>
             </tr>

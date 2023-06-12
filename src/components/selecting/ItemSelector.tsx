@@ -7,7 +7,7 @@ type ItemSelectorProps = {
   categoryItems: CategoryItem[];
 };
 
-const ItemSelector : FC<ItemSelectorProps> = ({ categoryItems }) => {
+const ItemSelector: FC<ItemSelectorProps> = ({ categoryItems }) => {
   const [mode, setMode] = useState('light');
 
   const [selectableItems, setSelectableItems] = useState<CategoryItem[]>([]);

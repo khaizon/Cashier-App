@@ -81,6 +81,33 @@ table tfoot tr:last-child td:last-child {
   border-bottom: thin solid var(--pink800);
 }
 
+.cashierStateTable th:nth-child(3),
+.cashierStateTable tbody td:nth-child(3),
+.cashierStateTable tfoot td:nth-child(1) {
+  display: none;
+}
+.cashierStateTable td {
+  max-width: 4rem;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+@media only screen and (min-width: 600px) {
+  .cashierStateTable th:nth-child(3),
+  .cashierStateTable tbody td:nth-child(3),
+  .cashierStateTable tfoot td:nth-child(1) {
+    display: table-cell;
+  }
+
+  .cashierStateTable td {
+    max-width: 100%;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+}
+
 .cashierStateTable > tfoot {
   position: sticky;
   bottom: 0;
@@ -135,9 +162,16 @@ table tfoot tr:last-child td:last-child {
 
 .iconContainer {
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
   font-weight: 500;
+}
+
+@media only screen and (min-width: 600px) {
+  .iconContainer {
+    flex-direction: row;
+  }
 }
 
 .price {

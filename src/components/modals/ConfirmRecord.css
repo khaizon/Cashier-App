@@ -1,6 +1,6 @@
 .confirmRecordContainer {
-  max-height: min(70vh, 30rem);
-  width: min(70vw, 30rem);
+  max-height: min(90vh, 30rem);
+  width: min(90vw, 30rem);
   overflow: auto;
   background-color: var(--grey820);
   padding: 1rem;
@@ -12,10 +12,14 @@
   gap: 1rem;
 }
 
+.denseTable {
+  min-width: 100%;
+}
+
 .denseTable table {
   border-collapse: collapse;
   font-size: 0.9em;
-  min-width: 400px;
+  min-width: 100%;
   background-color: var(--grey860);
   border-radius: 0.5rem;
   overflow: hidden;
@@ -31,6 +35,12 @@
   box-sizing: border-box;
   padding-right: 1rem;
   text-align: end;
+}
+
+.denseTable th:nth-child(3),
+.denseTable tbody td:nth-child(3),
+.denseTable tfoot td:nth-child(1) {
+  display: none;
 }
 
 .denseTable > table > tfoot > tr {
@@ -97,5 +107,21 @@
   .denseTable thead tr {
     background-color: var(--pink50);
     color: var(--pink500);
+  }
+}
+
+@media only screen and (min-width: 600px) {
+  .denseTable {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+  }
+  .denseTable table {
+    min-width: 25rem;
+  }
+  .denseTable th:nth-child(3),
+  .denseTable tbody td:nth-child(3),
+  .denseTable tfoot td:nth-child(1) {
+    display: table-cell;
   }
 }
