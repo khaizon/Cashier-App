@@ -259,3 +259,50 @@ def sale_out(sale: Sale) -> SaleOut:
         created_at=sale.created_at,
         items=[sale_item_out(line) for line in sale.items],
     )
+
+
+# ----------------------------------------------------------------- reporting
+
+
+class SalesRangeOut(BaseModel):
+    """The window a stats payload covers."""
+
+    days: int
+    start: datetime
+    end: datetime
+
+
+class PeriodTotalsOut(BaseModel):
+    revenue: float
+    transactions: int
+    items_sold: int
+    average_sale: float
+
+
+class DailyTotalOut(BaseModel):
+    # Local calendar date, ISO formatted, so the client does no date maths.
+    date: str
+    revenue: float
+    transactions: int
+
+
+class PaymentSplitOut(BaseModel):
+    payment: str
+    revenue: float
+    transactions: int
+    share: float
+
+
+class TopItemOut(BaseModel):
+    title: str
+    quantity: int
+    revenue: float
+
+
+class SalesStatsOut(BaseModel):
+    range: SalesRangeOut
+    today: PeriodTotalsOut
+    period: PeriodTotalsOut
+    daily: list[DailyTotalOut]
+    payments: list[PaymentSplitOut]
+    top_items: list[TopItemOut]

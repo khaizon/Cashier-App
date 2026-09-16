@@ -8,6 +8,8 @@ from __future__ import annotations
 
 import secrets
 import string
+from collections import Counter, defaultdict
+from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, HTTPException, Query, status
 from sqlalchemy import select
@@ -15,7 +17,18 @@ from sqlalchemy.orm import Session, selectinload
 
 from ..deps import CurrentUser, DbSession
 from ..models import Item, Sale, SaleItem
-from ..schemas import SaleCreate, SaleOut, sale_out
+from ..schemas import (
+    DailyTotalOut,
+    PaymentSplitOut,
+    PeriodTotalsOut,
+    SalesRangeOut,
+    SalesStatsOut,
+    SaleCreate,
+    SaleOut,
+    TopItemOut,
+    cents_to_dollars,
+    sale_out,
+)
 
 router = APIRouter(prefix="/api", tags=["sales"])
 
@@ -97,3 +110,109 @@ def list_sales(
         .offset(offset)
     ).all()
     return [sale_out(sale) for sale in sales]
+
+
+def _totals(revenue_cents: int, transactions: int, items_sold: int) -> PeriodTotalsOut:
+    return PeriodTotalsOut(
+        revenue=cents_to_dollars(revenue_cents),
+        transactions=transactions,
+        items_sold=items_sold,
+        average_sale=cents_to_dollars(round(revenue_cents / transactions)) if transactions else 0.0,
+    )
+
+
+@router.get("/sales/stats", response_model=SalesStatsOut, summary="Recorded-sales summary for a period")
+def sales_stats(
+    db: DbSession,
+    _user: CurrentUser,
+    days: int = Query(14, ge=1, le=365, description="Length of the reporting window, ending today"),
+) -> SalesStatsOut:
+    """Aggregate recorded sales for the reporting page.
+
+    Bucketing is deliberately done in Python rather than SQL: the whole point of
+    the window is that it is small, and doing it here keeps SQLite's date
+    functions and timezone handling out of the picture.
+    """
+    end = datetime.now(timezone.utc)
+    # Whole days only, so "today" is a clean boundary rather than a rolling 24h.
+    period_start = (end - timedelta(days=days - 1)).replace(hour=0, minute=0, second=0, microsecond=0)
+    today_start = end.replace(hour=0, minute=0, second=0, microsecond=0)
+
+    sales = db.scalars(
+        select(Sale)
+        .where(Sale.created_at >= period_start)
+        .options(selectinload(Sale.items))
+        .order_by(Sale.created_at.asc())
+    ).all()
+
+    daily_cents: dict[str, int] = {}
+    daily_count: dict[str, int] = {}
+    payment_cents: dict[str, int] = {}
+    payment_count: Counter[str] = Counter()
+    item_quantity: Counter[str] = Counter()
+    item_cents: defaultdict[str, int] = defaultdict(int)
+
+    total_cents = 0
+    today_cents = 0
+    today_count = 0
+    today_items = 0
+    items_sold = 0
+
+    for sale in sales:
+        # SQLite hands back naive datetimes; they were written as UTC.
+        created = sale.created_at
+        if created.tzinfo is None:
+            created = created.replace(tzinfo=timezone.utc)
+        day = created.date().isoformat()
+
+        daily_cents[day] = daily_cents.get(day, 0) + sale.total_cents
+        daily_count[day] = daily_count.get(day, 0) + 1
+        payment_cents[sale.payment] = payment_cents.get(sale.payment, 0) + sale.total_cents
+        payment_count[sale.payment] += 1
+        total_cents += sale.total_cents
+
+        is_today = created >= today_start
+        if is_today:
+            today_cents += sale.total_cents
+            today_count += 1
+
+        for line in sale.items:
+            item_quantity[line.title] += line.quantity
+            item_cents[line.title] += line.subtotal_cents
+            items_sold += line.quantity
+            if is_today:
+                today_items += line.quantity
+
+    # Every day in the window, including days with no sales.
+    daily = [
+        DailyTotalOut(
+            date=(period_start + timedelta(days=offset)).date().isoformat(),
+            revenue=cents_to_dollars(daily_cents.get((period_start + timedelta(days=offset)).date().isoformat(), 0)),
+            transactions=daily_count.get((period_start + timedelta(days=offset)).date().isoformat(), 0),
+        )
+        for offset in range(days)
+    ]
+
+    payments = [
+        PaymentSplitOut(
+            payment=payment,
+            revenue=cents_to_dollars(cents),
+            transactions=payment_count[payment],
+            share=round(cents / total_cents, 4) if total_cents else 0.0,
+        )
+        for payment, cents in sorted(payment_cents.items(), key=lambda entry: entry[1], reverse=True)
+    ]
+
+    top_items = [
+        TopItemOut(title=title, quantity=quantity, revenue=cents_to_dollars(item_cents[title]))
+        for title, quantity in item_quantity.most_common(10)
+    ]
+
+    return SalesStatsOut(
+        range=SalesRangeOut(days=days, start=period_start, end=end),
+        today=_totals(today_cents, today_count, today_items),
+        period=_totals(total_cents, len(sales), items_sold),
+        daily=daily,
+        payments=payments,
+        top_items=top_items,
+    )

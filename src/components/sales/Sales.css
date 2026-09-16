@@ -1,0 +1,352 @@
+.sales {
+  height: 100vh;
+  overflow-y: auto;
+  padding: 18px 22px 60px;
+  background-color: var(--grey900);
+  color: var(--pink60);
+  font-size: 0.9rem;
+  text-align: left;
+}
+
+.salesHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.salesHeader h1 {
+  margin: 0 0 4px;
+  font-size: 1.3rem;
+  line-height: 1.2;
+}
+
+.salesHeader p {
+  margin: 0;
+  font-size: 0.76rem;
+  opacity: 0.7;
+}
+
+.salesPeriods {
+  display: flex;
+  gap: 4px;
+}
+
+.salesPeriods button {
+  padding: 5px 12px;
+  border: none;
+  border-radius: 5px;
+  background-color: var(--grey820);
+  color: var(--pink60);
+  font: inherit;
+  font-size: 0.78rem;
+  cursor: pointer;
+}
+
+.salesPeriods button:hover {
+  background-color: var(--grey800);
+}
+
+.salesPeriods button.salesPeriodActive {
+  background-color: var(--pink150);
+  color: var(--pink800);
+  font-weight: 600;
+}
+
+.salesEmpty {
+  margin: 6px 0;
+  font-size: 0.82rem;
+  opacity: 0.65;
+}
+
+.salesError {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+  padding: 9px 12px;
+  border-radius: 6px;
+  background-color: var(--pink800);
+  color: var(--pink100);
+  font-size: 0.82rem;
+}
+
+.salesError button {
+  border: none;
+  background: none;
+  color: inherit;
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+/* ------------------------------------------------------------------ summary */
+
+.salesCards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.salesCard {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 12px 14px;
+  border: 1px solid var(--grey800);
+  border-radius: 8px;
+  background-color: var(--grey860);
+}
+
+.salesCardPrimary {
+  border-color: var(--pink500);
+}
+
+.salesCardLabel {
+  font-size: 0.7rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  opacity: 0.7;
+}
+
+.salesCardValue {
+  font-size: 1.45rem;
+  font-weight: 600;
+  line-height: 1.15;
+}
+
+.salesCardNote {
+  font-size: 0.72rem;
+  opacity: 0.65;
+}
+
+/* -------------------------------------------------------------------- panels */
+
+.salesGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+@media only screen and (min-width: 760px) {
+  .salesGrid {
+    grid-template-columns: 2fr 1fr 1fr;
+    align-items: start;
+  }
+}
+
+.salesPanel {
+  padding: 12px 14px 14px;
+  border: 1px solid var(--grey800);
+  border-radius: 8px;
+  background-color: var(--grey860);
+}
+
+.salesPanel h2 {
+  margin: 0 0 10px;
+  font-size: 0.86rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  opacity: 0.8;
+}
+
+/* --------------------------------------------------------------------- chart */
+
+.salesChart {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: 150px;
+  padding-top: 6px;
+}
+
+.salesBar {
+  display: flex;
+  flex: 1 1 0;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  height: 100%;
+  min-width: 0;
+}
+
+.salesBarFill {
+  width: 100%;
+  max-width: 34px;
+  border-radius: 3px 3px 0 0;
+  /* Zero-revenue days keep a faint stub so the axis reads as continuous. */
+  background-color: var(--grey700);
+}
+
+.salesBarFilled .salesBarFill {
+  background-color: var(--pink300);
+}
+
+/* Label every other bar on narrow windows so the axis never turns to mush. */
+.salesBarLabel {
+  margin-top: 5px;
+  font-size: 0.58rem;
+  white-space: nowrap;
+  opacity: 0.6;
+  transform: rotate(-45deg);
+  transform-origin: top center;
+  height: 14px;
+}
+
+@media only screen and (min-width: 760px) {
+  .salesBarLabel {
+    transform: none;
+    font-size: 0.62rem;
+  }
+}
+
+/* --------------------------------------------------------------- payment mix */
+
+.salesMix {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.salesMixHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 0.8rem;
+}
+
+.salesMixTrack {
+  height: 6px;
+  margin: 5px 0 3px;
+  border-radius: 3px;
+  background-color: var(--grey800);
+  overflow: hidden;
+}
+
+.salesMixFill {
+  display: block;
+  height: 100%;
+  border-radius: 3px;
+  background-color: var(--pink300);
+}
+
+.salesMixNote {
+  font-size: 0.68rem;
+  opacity: 0.6;
+}
+
+.salesPayTag {
+  padding: 1px 7px;
+  border-radius: 999px;
+  background-color: var(--grey800);
+  font-size: 0.68rem;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.salesPayTag--cash {
+  background-color: hsl(140, 25%, 26%);
+  color: var(--pink50);
+}
+
+.salesPayTag--paynow {
+  background-color: hsl(210, 32%, 30%);
+  color: var(--pink50);
+}
+
+/* --------------------------------------------------------------------- table */
+
+.salesTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8rem;
+}
+
+.salesTable th {
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--grey700);
+  font-size: 0.68rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  opacity: 0.65;
+  font-weight: 600;
+}
+
+.salesTable td {
+  padding: 7px 8px;
+  border-bottom: 1px solid var(--grey820);
+  vertical-align: top;
+}
+
+.salesTable tbody tr:hover {
+  background-color: var(--grey820);
+}
+
+.salesTableCompact td,
+.salesTableCompact th {
+  padding: 5px 6px;
+}
+
+.salesRef {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  letter-spacing: 0.06em;
+}
+
+.salesWhen {
+  white-space: nowrap;
+  opacity: 0.7;
+}
+
+.salesLines {
+  opacity: 0.85;
+}
+
+.salesPager {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 12px;
+  font-size: 0.75rem;
+  opacity: 0.85;
+}
+
+.salesPager button {
+  padding: 5px 12px;
+  border: none;
+  border-radius: 5px;
+  background-color: var(--grey820);
+  color: var(--pink60);
+  font: inherit;
+  font-size: 0.75rem;
+  cursor: pointer;
+}
+
+.salesPager button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+@media (max-width: 620px) {
+  .sales {
+    padding: 12px 12px 48px;
+  }
+
+  /* Let the transactions table scroll rather than squash its columns. */
+  .salesPanel {
+    overflow-x: auto;
+  }
+
+  .salesTable {
+    min-width: 520px;
+  }
+}

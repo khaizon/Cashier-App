@@ -3,6 +3,7 @@ import './App.css';
 
 import Cashier from './components/Cashier';
 import Cms from './components/cms/Cms';
+import Sales from './components/sales/Sales';
 import LoginCard from './components/auth/LoginCard';
 import { ApiError, fetchCatalog } from './api/client';
 import { TOKEN_STORAGE_KEY, readStoredToken, tokenUsername } from './api/session';
@@ -21,8 +22,8 @@ export const AuthContext = createContext<AuthContextValue>({
   logout: () => undefined,
 });
 
-/** The till, or the catalog editor. */
-type View = 'cashier' | 'cms';
+/** The till, the catalog editor, or recorded sales. */
+type View = 'cashier' | 'cms' | 'sales';
 
 function App() {
   const [token, setToken] = useState<string | null>(readStoredToken);
@@ -92,13 +93,14 @@ function App() {
             <button type="button" className={view === 'cms' ? 'appNavActive' : undefined} onClick={() => setView('cms')}>
               catalog cms
             </button>
+            <button type="button" className={view === 'sales' ? 'appNavActive' : undefined} onClick={() => setView('sales')}>
+              sales
+            </button>
             <span className="appNavUser">{tokenUsername(token)}</span>
           </nav>
-          {view === 'cms' ? (
-            <Cms token={token} onExit={showCashier} onUnauthorized={logout} />
-          ) : (
-            <Cashier categoryItems={categoryItems} />
-          )}
+          {view === 'cms' && <Cms token={token} onExit={showCashier} onUnauthorized={logout} />}
+          {view === 'sales' && <Sales token={token} onUnauthorized={logout} />}
+          {view === 'cashier' && <Cashier categoryItems={categoryItems} />}
         </>
       ) : (
         <LoginCard onAuthenticated={authenticate} />

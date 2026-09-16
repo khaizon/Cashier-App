@@ -228,3 +228,50 @@ export async function uploadItemImage(token: string, file: File, crop?: CropBox 
 export function recordSale(token: string, payment: Payment, items: { item_id: number; quantity: number }[]): Promise<SaleReceipt> {
   return request<SaleReceipt>('/api/sales', { method: 'POST', body: JSON.stringify({ payment, items }) }, token);
 }
+
+// ------------------------------------------------------------------- reporting
+
+export type PeriodTotals = {
+  revenue: number;
+  transactions: number;
+  items_sold: number;
+  average_sale: number;
+};
+
+export type DailyTotal = {
+  /** ISO calendar date (YYYY-MM-DD). */
+  date: string;
+  revenue: number;
+  transactions: number;
+};
+
+export type PaymentSplit = {
+  payment: Payment;
+  revenue: number;
+  transactions: number;
+  /** Fraction of period revenue, 0..1. */
+  share: number;
+};
+
+export type TopItem = {
+  title: string;
+  quantity: number;
+  revenue: number;
+};
+
+export type SalesStats = {
+  range: { days: number; start: string; end: string };
+  today: PeriodTotals;
+  period: PeriodTotals;
+  daily: DailyTotal[];
+  payments: PaymentSplit[];
+  top_items: TopItem[];
+};
+
+export function fetchSalesStats(token: string, days: number): Promise<SalesStats> {
+  return request<SalesStats>(`/api/sales/stats?days=${days}`, {}, token);
+}
+
+export function fetchRecentSales(token: string, limit: number, offset: number): Promise<SaleReceipt[]> {
+  return request<SaleReceipt[]>(`/api/sales?limit=${limit}&offset=${offset}`, {}, token);
+}
