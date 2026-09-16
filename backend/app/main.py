@@ -11,7 +11,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from . import __version__, models  # noqa: F401  (import registers ORM tables on Base.metadata)
 from .config import MIN_SECRET_KEY_BYTES, get_settings
 from .database import Base, engine
-from .routers import auth, catalog, sales
+from .migrations import run_migrations
+from .routers import admin, auth, catalog, images, sales
 
 logger = logging.getLogger("cashier")
 
@@ -31,6 +32,9 @@ async def lifespan(_app: FastAPI):
             MIN_SECRET_KEY_BYTES,
         )
     Base.metadata.create_all(bind=engine)
+    # create_all never alters existing tables, so an upgraded checkout still
+    # needs the additive column additions applied before serving requests.
+    run_migrations(engine)
     yield
 
 
@@ -50,6 +54,8 @@ def create_app() -> FastAPI:
     app.include_router(auth.router)
     app.include_router(catalog.router)
     app.include_router(sales.router)
+    app.include_router(images.router)
+    app.include_router(admin.router)
 
     @app.get("/api/health", tags=["meta"], summary="Liveness probe")
     def health() -> dict[str, str]:

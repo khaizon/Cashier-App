@@ -2,6 +2,7 @@ import { FC, useContext } from 'react';
 import './ItemCard.css';
 import { CashierContext } from '../Cashier';
 import { formatter } from '../../shared/functions/formatter';
+import { resolveImageSrc } from '../../api/client';
 
 type ItemCardProps = {
   item: Item;
@@ -21,7 +22,7 @@ const ItemCard: FC<ItemCardProps> = ({ item: { img, title, price, id }, bg, fg, 
       }}
       onClick={() => dispatch({ type: 'ADD', payload: { img, title, price, id } })}
     >
-      <img src={img} />
+      <img src={resolveImageSrc(img)} alt={title} />
       <div className="itemNameAndPrice">
         <div className="name" style={{ color: fg }}>
           {title}

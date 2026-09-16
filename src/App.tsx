@@ -2,6 +2,7 @@ import { createContext, useCallback, useEffect, useState } from 'react';
 import './App.css';
 
 import Cashier from './components/Cashier';
+import Cms from './components/cms/Cms';
 import LoginCard from './components/auth/LoginCard';
 import { ApiError, fetchCatalog } from './api/client';
 import { TOKEN_STORAGE_KEY, readStoredToken, tokenUsername } from './api/session';
@@ -20,16 +21,23 @@ export const AuthContext = createContext<AuthContextValue>({
   logout: () => undefined,
 });
 
+/** The till, or the catalog editor. */
+type View = 'cashier' | 'cms';
+
 function App() {
   const [token, setToken] = useState<string | null>(readStoredToken);
   const [categoryItems, setCategoryItems] = useState<CategoryItem[]>([]);
   const [catalogError, setCatalogError] = useState('');
+  const [view, setView] = useState<View>('cashier');
+  // Bumped to force the catalog effect to re-run after CMS edits.
+  const [catalogRevision, setCatalogRevision] = useState(0);
 
   const logout = useCallback(() => {
     localStorage.removeItem(TOKEN_STORAGE_KEY);
     setToken(null);
     setCategoryItems([]);
     setCatalogError('');
+    setView('cashier');
   }, []);
 
   const authenticate = useCallback((nextToken: string) => {
@@ -64,12 +72,37 @@ function App() {
     return () => {
       cancelled = true;
     };
-  }, [token, logout]);
+  }, [token, logout, catalogRevision]);
+
+  /** Leaving the CMS: pick up whatever the editor just changed. */
+  const showCashier = useCallback(() => {
+    setView('cashier');
+    setCatalogRevision((revision) => revision + 1);
+  }, []);
 
   return (
     <AuthContext.Provider value={{ token, username: tokenUsername(token), logout }}>
       {catalogError && <div className="appError">{catalogError}</div>}
-      {token ? <Cashier categoryItems={categoryItems} /> : <LoginCard onAuthenticated={authenticate} />}
+      {token ? (
+        <>
+          <nav className="appNav">
+            <button type="button" className={view === 'cashier' ? 'appNavActive' : undefined} onClick={showCashier}>
+              till
+            </button>
+            <button type="button" className={view === 'cms' ? 'appNavActive' : undefined} onClick={() => setView('cms')}>
+              catalog cms
+            </button>
+            <span className="appNavUser">{tokenUsername(token)}</span>
+          </nav>
+          {view === 'cms' ? (
+            <Cms token={token} onExit={showCashier} onUnauthorized={logout} />
+          ) : (
+            <Cashier categoryItems={categoryItems} />
+          )}
+        </>
+      ) : (
+        <LoginCard onAuthenticated={authenticate} />
+      )}
     </AuthContext.Provider>
   );
 }

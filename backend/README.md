@@ -48,6 +48,16 @@ The sample catalog is placeholder data so the UI has something to sell. Replace
 | GET    | `/api/catalog`    | JWT  | Categories with their items              |
 | POST   | `/api/sales`      | JWT  | Record a sale                            |
 | GET    | `/api/sales`      | JWT  | Recent sales, newest first               |
+| GET    | `/api/images/{id}`| –    | An image's bytes (see below)             |
+| POST   | `/api/images`     | JWT  | Upload an image, cropped to a square     |
+| GET    | `/api/admin/catalog` | JWT | Full catalog for editing              |
+| POST   | `/api/admin/categories` | JWT | Create a category                  |
+| PATCH  | `/api/admin/categories/{id}` | JWT | Rename / recolour a category  |
+| DELETE | `/api/admin/categories/{id}` | JWT | Delete a category and its items |
+| POST   | `/api/admin/items` | JWT | Create an item                          |
+| PATCH  | `/api/admin/items/{id}` | JWT | Update an item                     |
+| DELETE | `/api/admin/items/{id}` | JWT | Delete an item                      |
+| DELETE | `/api/admin/images/{id}` | JWT | Delete an unreferenced image      |
 
 Send the token as `Authorization: Bearer <token>`.
 
@@ -60,7 +70,57 @@ curl -s localhost:8000/api/catalog -H "Authorization: Bearer $TOKEN"
 curl -s -X POST localhost:8000/api/sales -H "Authorization: Bearer $TOKEN" \
   -H 'Content-Type: application/json' \
   -d '{"payment":"cash","items":[{"item_id":1,"quantity":2}]}'
+
+# Crop a square out of a 640x360 photo and attach it to item 1.
+IMAGE=$(curl -s -X POST localhost:8000/api/images -H "Authorization: Bearer $TOKEN" \
+  -F file=@photo.jpg -F crop_left=0.25 -F crop_top=0 -F crop_right=0.75 -F crop_bottom=1 \
+  | python3 -c 'import sys,json;print(json.load(sys.stdin)["id"])')
+curl -s -X PATCH localhost:8000/api/admin/items/1 -H "Authorization: Bearer $TOKEN" \
+  -H 'Content-Type: application/json' -d "{\"image_id\": $IMAGE}"
 ```
+
+## Images
+
+Uploaded images are stored **in the database**, not on disk, so a catalogue is a
+single portable artifact and the service needs no writable volume.
+
+**Cropping.** The app renders item tiles in a square frame, so the server
+normalises every upload to a square. The client sends the chosen region as four
+normalised coordinates (`crop_left`/`crop_top`/`crop_right`/`crop_bottom`, each
+0..1 of the *oriented* image, and either all four or none). Normalised
+coordinates are resolution-independent, so the browser can preview on a
+downscaled canvas while the crop is applied to the full-resolution original.
+
+The server never trusts the client to have sent a square: it re-derives a square
+centred on the requested rectangle, clamps it inside the image, and rejects a
+crop smaller than 5% of the shorter edge. Omitting the crop takes the largest
+centred square. EXIF orientation is applied *before* the geometry, so a portrait
+phone photo is cropped the way the user saw it.
+
+**Storage.** `process_upload` re-encodes to WebP (quality 88), capped at 1024px
+and never upscaled — re-encoding also strips EXIF and any trailing payload, so a
+malformed file cannot smuggle arbitrary bytes into the database. Identical output
+is deduplicated on the SHA-256 of the encoded bytes, so re-uploading the same
+picture is free.
+
+**Delivery.** `GET /api/images/{public_id}` is deliberately unauthenticated:
+these bytes are rendered by an `<img src>`, which cannot carry an
+`Authorization` header. Each row instead gets a random `public_id`, so the
+sequential primary key is never exposed and the image space cannot be enumerated.
+Images are immutable — changing an item's picture stores a *new* row and repoints
+the item, bumping `items.image_version` so a cached URL is bypassed. That is what
+makes `Cache-Control: immutable` safe, and it keeps historical references valid.
+
+Deleting an item leaves its image in place (sale history may still reference it);
+`DELETE /api/admin/images/{id}` removes one explicitly and refuses while any item
+still uses it.
+
+**Migrations.** `create_all` creates missing tables but never alters existing
+ones, so `app/migrations.py` applies additive changes (new columns and indexes)
+on startup. It is idempotent and runs after `create_all`. Introspection there
+uses `PRAGMA table_info` on the migration's own connection — `inspect()` caches
+per-table reflection, and checking out a second connection can roll back the
+migration's uncommitted work under a shared-connection pool.
 
 ## Design notes
 
@@ -117,5 +177,9 @@ Tests run against a throwaway SQLite file per test, with `get_db` and
 
 This is an MVP. Before real use you would also want: HTTPS, refresh tokens or
 shorter token lifetimes, a user-management endpoint (today users are created by
-`seed.py`), rate limiting on login, and a real migration tool (Alembic) instead
-of `create_all`.
+`seed.py`), rate limiting on login, and role separation — every authenticated
+user can currently edit the catalog, so the CMS is not access-controlled beyond
+"has a login".
+
+The additive migrations in `app/migrations.py` are a stopgap, not a substitute
+for Alembic: they only cover new columns and indexes.

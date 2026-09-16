@@ -31,7 +31,7 @@ def test_catalog_items_carry_every_field_the_frontend_needs(
     body = client.get("/api/catalog", headers=auth_headers).json()
     item = body[0]["items"][0]
 
-    assert set(item) == {"id", "img", "title", "price"}
+    assert set(item) == {"id", "img", "title", "price", "image_id"}
     assert set(body[0]) == {"category", "palette1", "palette2", "palette3", "items"}
 
 

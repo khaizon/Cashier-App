@@ -1,8 +1,10 @@
 """E2E harness: boots the real backend and the built frontend, then drives a browser.
 
 Requires Node 26 on PATH (for ``npm run preview``) and a built ``docs/``
-directory (``npm run build``). The backend always binds port 8000 because the
-frontend bakes in ``VITE_API_BASE_URL`` at build time.
+directory (``npm run build``). The backend port defaults to 8000 because the
+frontend bakes in ``VITE_API_BASE_URL`` at build time — if you move it with
+``E2E_BACKEND_PORT``, rebuild with a matching ``VITE_API_BASE_URL`` or the
+browser will keep calling the default.
 """
 
 from __future__ import annotations
@@ -22,8 +24,8 @@ ROOT = Path(__file__).resolve().parents[1]
 BACKEND = ROOT / "backend"
 BACKEND_PYTHON = BACKEND / ".venv" / "bin" / "python"
 
-BACKEND_PORT = 8000
-FRONTEND_PORT = 4173
+BACKEND_PORT = int(os.environ.get("E2E_BACKEND_PORT", "8000"))
+FRONTEND_PORT = int(os.environ.get("E2E_FRONTEND_PORT", "4173"))
 # Everything is pinned to IPv4: Node resolves `localhost` to ::1 first, which
 # would make `vite preview` bind an IPv6-only socket that uvicorn cannot answer.
 HOST = "127.0.0.1"

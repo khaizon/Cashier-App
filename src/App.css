@@ -5,6 +5,42 @@
   text-align: center;
 }
 
+.appNav {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background-color: var(--grey900);
+  border-bottom: 1px solid var(--grey800);
+}
+
+.appNav button {
+  padding: 5px 12px;
+  border: none;
+  border-radius: 5px;
+  background-color: transparent;
+  color: var(--pink60);
+  font: inherit;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.appNav button:hover {
+  background-color: var(--grey820);
+}
+
+.appNav button.appNavActive {
+  background-color: var(--pink150);
+  color: var(--pink800);
+  font-weight: 600;
+}
+
+.appNavUser {
+  margin-left: auto;
+  font-size: 0.74rem;
+  color: var(--grey400);
+}
+
 .appError {
   position: fixed;
   top: 0;

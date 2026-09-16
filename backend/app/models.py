@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 
-from sqlalchemy import DateTime, ForeignKey, Integer, String
+from sqlalchemy import DateTime, ForeignKey, Integer, LargeBinary, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .database import Base
@@ -55,10 +55,52 @@ class Item(Base):
     category_id: Mapped[int] = mapped_column(ForeignKey("categories.id", ondelete="CASCADE"), index=True)
     title: Mapped[str] = mapped_column(String(160))
     price_cents: Mapped[int] = mapped_column(Integer)
+    # Legacy/external URL, used when no image has been uploaded through the CMS.
+    # See ``image_id`` for CMS-managed assets.
     img: Mapped[str] = mapped_column(String(500), default="")
     sort_order: Mapped[int] = mapped_column(Integer, default=0)
 
+    # CMS-managed image. Nullable so externally-hosted images (the old
+    # ``img`` string, seeded sample data) keep working unchanged.
+    image_id: Mapped[int | None] = mapped_column(
+        ForeignKey("item_images.id", ondelete="SET NULL"), nullable=True, index=True
+    )
+    # Bumped whenever the underlying bytes change, so a fixed image URL can be
+    # cached immutably by the browser without ever going stale.
+    image_version: Mapped[int] = mapped_column(Integer, default=0)
+
     category: Mapped[Category] = relationship(back_populates="items")
+    image: Mapped[ItemImage | None] = relationship(back_populates="items")
+
+
+class ItemImage(Base):
+    """An uploaded catalogue image, stored in the database as bytes.
+
+    Images live in the DB rather than on disk so a catalogue is a single
+    portable artifact and the app stays deployable without a writable volume.
+
+    Bytes are always normalised to a square on the way in (see ``app.images``),
+    so consumers can assume ``width == height``.
+    """
+
+    __tablename__ = "item_images"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    # Unguessable handle used in public URLs, so the sequential ``id`` is never
+    # exposed and the image space cannot be enumerated.
+    public_id: Mapped[str] = mapped_column(String(32), unique=True, index=True)
+    data: Mapped[bytes] = mapped_column(LargeBinary)
+    content_type: Mapped[str] = mapped_column(String(64), default="image/webp")
+    # Original client filename, kept for operator recognition only.
+    filename: Mapped[str] = mapped_column(String(255), default="")
+    width: Mapped[int] = mapped_column(Integer)
+    height: Mapped[int] = mapped_column(Integer)
+    byte_size: Mapped[int] = mapped_column(Integer)
+    # sha256 of ``data``; lets an operator spot duplicate assets.
+    sha256: Mapped[str] = mapped_column(String(64), index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+    items: Mapped[list[Item]] = relationship(back_populates="image")
 
 
 class Sale(Base):

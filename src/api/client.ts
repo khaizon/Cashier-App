@@ -10,6 +10,22 @@
 // somewhere else.
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? 'http://127.0.0.1:8000').replace(/\/+$/, '');
 
+/**
+ * Absolute URL for an image shown in an `<img>`.
+ *
+ * Catalog rows carry two kinds of value: legacy site-relative paths that the
+ * SPA already serves (e.g. `/Cashier-App/maomao.png`, resolved against the
+ * origin) and backend-owned API paths (e.g. `/api/images/abc?v=1`, resolved
+ * against the API). `API_BASE_URL` is usually a different origin in dev, so the
+ * two must not be mixed up.
+ */
+export function resolveImageSrc(img: string): string {
+  if (!img) return '';
+  if (/^[a-z][a-z0-9+.-]*:/i.test(img) || img.startsWith('//')) return img;
+  if (img.startsWith('/api/')) return `${API_BASE_URL}${img}`;
+  return img;
+}
+
 export class ApiError extends Error {
   /** HTTP status, or 0 when the server could not be reached at all. */
   readonly status: number;
@@ -56,7 +72,10 @@ async function request<T>(path: string, init: RequestInit = {}, token?: string):
   if (token) {
     headers.set('Authorization', `Bearer ${token}`);
   }
-  if (init.body && !headers.has('Content-Type')) {
+  // FormData must keep the browser's own Content-Type: it carries the multipart
+  // boundary. Forcing JSON here silently breaks image uploads.
+  const isFormData = typeof FormData !== 'undefined' && init.body instanceof FormData;
+  if (init.body && !isFormData && !headers.has('Content-Type')) {
     headers.set('Content-Type', 'application/json');
   }
 
@@ -92,6 +111,118 @@ export async function login(username: string, password: string): Promise<string>
 
 export function fetchCatalog(token: string): Promise<CategoryItem[]> {
   return request<CategoryItem[]>('/api/catalog', {}, token);
+}
+
+// ------------------------------------------------------------------ CMS / admin
+
+export type AdminItem = {
+  id: number;
+  category_id: number;
+  title: string;
+  /** Integer cents, the storage unit. Divide by 100 only for display. */
+  price_cents: number;
+  img: string;
+  image_id: number | null;
+  image_url: string | null;
+  sort_order: number;
+};
+
+export type AdminCategory = {
+  id: number;
+  name: string;
+  palette1: string;
+  palette2: string;
+  palette3: string;
+  sort_order: number;
+  items: AdminItem[];
+};
+
+export type UploadedImage = {
+  id: number;
+  url: string;
+  width: number;
+  height: number;
+  byte_size: number;
+  content_type: string;
+  original_filename: string;
+};
+
+/** Normalised crop rectangle, each value 0..1 of the oriented source image. */
+export type CropBox = {
+  left: number;
+  top: number;
+  right: number;
+  bottom: number;
+};
+
+export function fetchAdminCatalog(token: string): Promise<AdminCategory[]> {
+  return request<AdminCategory[]>('/api/admin/catalog', {}, token);
+}
+
+export function createCategory(token: string, name: string): Promise<AdminCategory> {
+  return request<AdminCategory>('/api/admin/categories', { method: 'POST', body: JSON.stringify({ name }) }, token);
+}
+
+export function updateCategory(
+  token: string,
+  categoryId: number,
+  patch: Partial<Pick<AdminCategory, 'name' | 'palette1' | 'palette2' | 'palette3' | 'sort_order'>>,
+): Promise<AdminCategory> {
+  return request<AdminCategory>(
+    `/api/admin/categories/${categoryId}`,
+    { method: 'PATCH', body: JSON.stringify(patch) },
+    token,
+  );
+}
+
+export function deleteCategory(token: string, categoryId: number): Promise<void> {
+  return request<void>(`/api/admin/categories/${categoryId}`, { method: 'DELETE' }, token);
+}
+
+export function createItem(
+  token: string,
+  payload: { category_id: number; title: string; price_cents: number; image_id?: number | null },
+): Promise<AdminItem> {
+  return request<AdminItem>('/api/admin/items', { method: 'POST', body: JSON.stringify(payload) }, token);
+}
+
+export function updateItem(
+  token: string,
+  itemId: number,
+  patch: Partial<{
+    category_id: number;
+    title: string;
+    price_cents: number;
+    image_id: number | null;
+    img: string;
+    sort_order: number;
+  }>,
+): Promise<AdminItem> {
+  return request<AdminItem>(`/api/admin/items/${itemId}`, { method: 'PATCH', body: JSON.stringify(patch) }, token);
+}
+
+export function deleteItem(token: string, itemId: number): Promise<void> {
+  return request<void>(`/api/admin/items/${itemId}`, { method: 'DELETE' }, token);
+}
+
+/**
+ * Upload an image, optionally cropped to a square.
+ *
+ * The crop is sent as normalised coordinates rather than cropped pixels so the
+ * server can apply it to the full-resolution original. The backend re-derives a
+ * square from these regardless of what is sent.
+ */
+export async function uploadItemImage(token: string, file: File, crop?: CropBox | null): Promise<UploadedImage> {
+  const form = new FormData();
+  form.append('file', file);
+  if (crop) {
+    form.append('crop_left', String(crop.left));
+    form.append('crop_top', String(crop.top));
+    form.append('crop_right', String(crop.right));
+    form.append('crop_bottom', String(crop.bottom));
+  }
+  // No explicit Content-Type: the browser must add the multipart boundary.
+  return request<UploadedImage>('/api/images', { method: 'POST', body: form }, token);
 }
 
 export function recordSale(token: string, payment: Payment, items: { item_id: number; quantity: number }[]): Promise<SaleReceipt> {

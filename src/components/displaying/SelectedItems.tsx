@@ -2,6 +2,7 @@ import { useContext, useState } from 'react';
 import './SelectedItems.css';
 import { CashierContext } from '../Cashier';
 import { formatter } from '../../shared/functions/formatter';
+import { resolveImageSrc } from '../../api/client';
 import Modal from '../modals/Modal';
 import ConfirmRecord from '../modals/ConfirmRecord';
 import ComputeChange from '../modals/ComputeChange';
@@ -87,7 +88,7 @@ const SelectedItems = () => {
               items.map(({ id, img, price, title, quantity, subtotal }) => (
                 <tr key={id}>
                   <td>
-                    <img className="cashierStateItemImg" src={img} width={'30px'} />
+                    <img className="cashierStateItemImg" src={resolveImageSrc(img)} alt={title} width={'30px'} />
                   </td>
                   <td align="left">{title}</td>
                   <td className="price money">{formatter.format(price)}</td>
