@@ -70,6 +70,16 @@
   color: rgb(112, 112, 112);
 }
 
+.confirmRecordError {
+  color: #ff8f85;
+  font-size: 0.85em;
+}
+
+.confirmRecordSuccess {
+  color: rgb(122, 235, 197);
+  font-size: 0.9em;
+}
+
 .recording:hover {
   border: thin solid rgb(232, 230, 169);
   outline: none;

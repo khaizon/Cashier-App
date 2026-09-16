@@ -55,6 +55,8 @@ const cashierStateReducer = (state: CashierState, { type, payload }: { type: str
   return state;
 };
 
+// Context is intentionally co-located with Cashier; splitting it out is a larger refactor.
+// eslint-disable-next-line react-refresh/only-export-components
 export const CashierContext = createContext<{
   state: CashierState;
   dispatch: React.Dispatch<{ type: string; payload: Item }>;

@@ -7,37 +7,34 @@ type ItemSelectorProps = {
   categoryItems: CategoryItem[];
 };
 
+const DARK_MODE_QUERY = '(prefers-color-scheme: dark)';
+
+const readCachedItems = (): CategoryItem[] => {
+  const cachedData = localStorage.getItem('cachedData');
+  return cachedData ? JSON.parse(cachedData) : [];
+};
+
 const ItemSelector: FC<ItemSelectorProps> = ({ categoryItems }) => {
-  const [mode, setMode] = useState('light');
+  const [mode, setMode] = useState(() => (window.matchMedia(DARK_MODE_QUERY).matches ? 'dark' : 'light'));
 
-  const [selectableItems, setSelectableItems] = useState<CategoryItem[]>([]);
+  const [cachedItems] = useState<CategoryItem[]>(readCachedItems);
 
-  const onSelectMode = (mode: string) => {
-    setMode(mode);
-  };
+  // Render fresh items when available, otherwise fall back to the cached ones
+  const selectableItems = categoryItems.length > 0 ? categoryItems : cachedItems;
 
   useEffect(() => {
-    // Add listener to update styles
-    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => onSelectMode(e.matches ? 'dark' : 'light'));
+    // Keep dark/light mode in sync with the system preference
+    const mediaQuery = window.matchMedia(DARK_MODE_QUERY);
+    const handleChange = (e: MediaQueryListEvent) => setMode(e.matches ? 'dark' : 'light');
+    mediaQuery.addEventListener('change', handleChange);
 
-    // Setup dark/light mode for the first time
-    onSelectMode(window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-
-    // Remove listener
-    return () => {
-      window.matchMedia('(prefers-color-scheme: dark)').removeEventListener('change', () => {
-        console.log('dark mode listener removed');
-      });
-    };
+    return () => mediaQuery.removeEventListener('change', handleChange);
   }, []);
 
   useEffect(() => {
-    const cachedData = JSON.parse(localStorage.getItem('cachedData') as string);
+    // Cache the latest items so they can be shown before the sheet finishes loading
     if (categoryItems.length > 0) {
-      setSelectableItems(categoryItems);
       localStorage.setItem('cachedData', JSON.stringify(categoryItems));
-    } else if (cachedData) {
-      setSelectableItems(cachedData);
     }
   }, [categoryItems]);
 

@@ -76,7 +76,11 @@ button:focus-visible {
   border-radius: 5px;
 }
 
-::-webkit-scrollbar * {
+/* `::-webkit-scrollbar *` is not a valid selector, so reset the parts explicitly */
+::-webkit-scrollbar-track,
+::-webkit-scrollbar-thumb,
+::-webkit-scrollbar-button,
+::-webkit-scrollbar-corner {
   background-color: transparent;
 }
 

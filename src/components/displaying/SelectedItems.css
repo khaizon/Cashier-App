@@ -179,8 +179,6 @@ table tfoot tr:last-child td:last-child {
 }
 
 .subtotal div {
-  all: i;
-  background-color: none;
   font-size: 0.9em;
   font-weight: 500;
 }

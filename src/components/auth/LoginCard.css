@@ -30,6 +30,17 @@ input::placeholder {
   color: var(--pink500);
 }
 
+.loginError {
+  color: #ff8f85;
+  font-size: 0.85em;
+  max-width: 16rem;
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 @media (prefers-color-scheme: light) {
   input {
     color: var(--pink500);
