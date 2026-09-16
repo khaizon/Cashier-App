@@ -95,3 +95,43 @@ def test_credentials_are_actually_used(page: Page):
 
     expect(page.locator(".itemSelector")).to_be_visible()
     assert page.evaluate("localStorage.getItem('cashier.token')") is not None
+
+
+def test_till_controls_stay_on_screen(page: Page):
+    """The app nav must not push the till's action row out of the viewport.
+
+    The till sizes itself from its parent, so a nav bar in normal flow used to
+    add its own height on top of a full-viewport grid and clip RESET / RECORD /
+    CHANGE below the fold.
+    """
+    login(page)
+    card = page.locator(".itemCard").first
+    for _ in range(8):
+        card.click()
+
+    layout = page.evaluate(
+        """() => {
+             const controls = document.querySelector('.resultContainer').getBoundingClientRect();
+             const table = document.querySelector('.tableContainer');
+             const viewport = window.innerHeight;
+             return {
+               controlBottom: Math.round(controls.bottom),
+               viewport,
+               documentScroll: document.documentElement.scrollHeight,
+               // The cart scrolls internally rather than growing the page.
+               tableOverflows: table.scrollHeight > table.clientHeight,
+             };
+           }"""
+    )
+
+    assert layout["controlBottom"] <= layout["viewport"], layout
+    assert layout["documentScroll"] <= layout["viewport"] + 1, layout
+
+    # And the controls are genuinely usable, not merely visible.
+    page.locator(".resultContainer button").filter(has_text="RESET").click()
+    expect(page.locator(".cashierStateTable")).to_contain_text("no items in cart")
+
+    page.locator(".resultContainer button").filter(has_text="CHANGE").click()
+    expect(page.locator(".computeChangeContainer")).to_be_visible()
+    page.locator(".modal").click(position={"x": 4, "y": 4})
+    expect(page.locator(".modal")).to_be_hidden()

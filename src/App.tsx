@@ -85,7 +85,7 @@ function App() {
     <AuthContext.Provider value={{ token, username: tokenUsername(token), logout }}>
       {catalogError && <div className="appError">{catalogError}</div>}
       {token ? (
-        <>
+        <div className="appShell">
           <nav className="appNav">
             <button type="button" className={view === 'cashier' ? 'appNavActive' : undefined} onClick={showCashier}>
               till
@@ -98,10 +98,15 @@ function App() {
             </button>
             <span className="appNavUser">{tokenUsername(token)}</span>
           </nav>
-          {view === 'cms' && <Cms token={token} onExit={showCashier} onUnauthorized={logout} />}
-          {view === 'sales' && <Sales token={token} onUnauthorized={logout} />}
-          {view === 'cashier' && <Cashier categoryItems={categoryItems} />}
-        </>
+          {/* Takes the height left over by the nav. The till sizes itself from
+              its parent, so giving the nav its own flow height used to push the
+              reset/change row off the bottom of the viewport. */}
+          <div className="appView">
+            {view === 'cms' && <Cms token={token} onExit={showCashier} onUnauthorized={logout} />}
+            {view === 'sales' && <Sales token={token} onUnauthorized={logout} />}
+            {view === 'cashier' && <Cashier categoryItems={categoryItems} />}
+          </div>
+        </div>
       ) : (
         <LoginCard onAuthenticated={authenticate} />
       )}

@@ -3,6 +3,24 @@
   height: 100%;
   margin: 0;
   text-align: center;
+  /* The shell manages its own scrolling; nothing should scroll the document. */
+  overflow: hidden;
+}
+
+/* Full-height column: nav at its natural height, the view fills the rest. */
+.appShell {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+.appView {
+  flex: 1;
+  /* Without this a flex item refuses to shrink below its content, which is
+     what clipped the till's bottom row. */
+  min-height: 0;
+  overflow: hidden;
 }
 
 .appNav {
@@ -12,17 +30,15 @@
   padding: 6px 12px;
   background-color: var(--grey900);
   border-bottom: 1px solid var(--grey800);
+  /* Keep its natural height when the column is squeezed. */
+  flex: 0 0 auto;
 }
 
 .appNav button {
-  padding: 5px 12px;
-  border: none;
-  border-radius: 5px;
-  background-color: transparent;
-  color: var(--pink60);
-  font: inherit;
-  font-size: 0.8rem;
-  cursor: pointer;
+  padding: 4px 11px;
+  border-radius: 6px;
+  font-size: 0.78rem;
+  line-height: 1.4;
 }
 
 .appNav button:hover {
