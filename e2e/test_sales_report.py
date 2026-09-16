@@ -7,7 +7,10 @@ that totals never contradict the rows, rather than pinning exact figures.
 
 from __future__ import annotations
 
+import csv
+import io
 import re
+from pathlib import Path
 
 from playwright.sync_api import Page, expect
 
@@ -121,3 +124,75 @@ def test_empty_state_is_shown_when_nothing_matches(page: Page):
     # The page always renders its structure, never a blank screen.
     expect(page.locator(".salesCards")).to_be_visible()
     expect(page.locator(".salesPanel", has_text="Payment mix")).to_be_visible()
+
+
+def test_export_button_downloads_a_csv(page: Page):
+    """The export must carry the bearer token, which a plain link cannot."""
+    login(page)
+    order_ref = record_sale(page, "Espresso", times=2)  # 2 x $3.00
+
+    open_sales(page)
+
+    authorizations: list[str] = []
+    page.on(
+        "request",
+        lambda request: authorizations.append(request.headers.get("authorization", ""))
+        if "export.csv" in request.url
+        else None,
+    )
+
+    with page.expect_download() as download_info:
+        page.locator(".salesExport").click()
+    download = download_info.value
+
+    # The server names the file, so the UI does not have to invent one.
+    assert download.suggested_filename.startswith("cashier-sales-")
+    assert download.suggested_filename.endswith(".csv")
+    assert any(value.startswith("Bearer ") for value in authorizations), authorizations
+
+    body = Path(download.path()).read_text(encoding="utf-8-sig")
+    parsed = list(csv.DictReader(io.StringIO(body)))
+
+    assert parsed, "export contained no rows"
+    assert list(parsed[0]) == [
+        "order_ref",
+        "created_at_utc",
+        "date_local",
+        "payment",
+        "cashier",
+        "item",
+        "unit_price_cents",
+        "quantity",
+        "line_subtotal_cents",
+        "sale_total_cents",
+        "unit_price",
+        "line_subtotal",
+        "sale_total",
+    ]
+
+    # This sale is present, one row per line, with the amounts intact.
+    mine = [row for row in parsed if row["order_ref"] == order_ref]
+    assert len(mine) == 1
+    assert mine[0]["item"] == "Espresso"
+    assert mine[0]["quantity"] == "2"
+    assert mine[0]["line_subtotal"] == "6.00"
+    assert mine[0]["sale_total"] == "6.00"
+
+
+def test_export_is_scoped_to_the_selected_period(page: Page):
+    login(page)
+    record_sale(page, "Long Black", times=1)
+    open_sales(page)
+
+    authorizations: list[str] = []
+    page.on(
+        "request",
+        lambda request: authorizations.append(request.url) if "export.csv" in request.url else None,
+    )
+
+    page.get_by_role("button", name="30 days").click()
+    with page.expect_download():
+        page.locator(".salesExport").click()
+
+    assert authorizations, "no export request observed"
+    assert "days=30" in authorizations[-1], authorizations

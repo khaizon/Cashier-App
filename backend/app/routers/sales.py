@@ -6,12 +6,14 @@ dictate what it pays; the client only sends item ids and quantities.
 
 from __future__ import annotations
 
+import csv
 import secrets
 import string
 from collections import Counter, defaultdict
 from datetime import datetime, timedelta, timezone
+from io import StringIO
 
-from fastapi import APIRouter, HTTPException, Query, status
+from fastapi import APIRouter, HTTPException, Query, Response, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session, selectinload
 
@@ -118,6 +120,96 @@ def _totals(revenue_cents: int, transactions: int, items_sold: int) -> PeriodTot
         transactions=transactions,
         items_sold=items_sold,
         average_sale=cents_to_dollars(round(revenue_cents / transactions)) if transactions else 0.0,
+    )
+
+
+def _csv_safe(value: str) -> str:
+    """Neutralise spreadsheet formula injection.
+
+    A field beginning with =, +, - or @ is treated as a formula by Excel and
+    Sheets, so a catalog title like ``=HYPERLINK(...)`` would execute when the
+    export is opened. Prefixing with an apostrophe keeps it as text. Item titles
+    are operator-entered, so this is a real (if small) hole, not paranoia.
+    """
+    if value[:1] in ("=", "+", "-", "@", "\t", "\r"):
+        return "'" + value
+    return value
+
+
+# Fixed columns, plus one row per sale *line*: a sale with three items becomes
+# three rows, each carrying its order's own total. That is the shape pivot
+# tables and per-item reporting expect; the sale total deliberately repeats.
+CSV_COLUMNS = (
+    "order_ref",
+    "created_at_utc",
+    "date_local",
+    "payment",
+    "cashier",
+    "item",
+    "unit_price_cents",
+    "quantity",
+    "line_subtotal_cents",
+    "sale_total_cents",
+    "unit_price",
+    "line_subtotal",
+    "sale_total",
+)
+
+
+@router.get("/sales/export.csv", summary="Download recorded sales as CSV")
+def export_sales_csv(
+    db: DbSession,
+    _user: CurrentUser,
+    days: int = Query(30, ge=1, le=3650, description="Length of the export window, ending today"),
+) -> Response:
+    end = datetime.now(timezone.utc)
+    start = (end - timedelta(days=days - 1)).replace(hour=0, minute=0, second=0, microsecond=0)
+
+    sales = db.scalars(
+        select(Sale)
+        .where(Sale.created_at >= start)
+        # Chronological: an export is usually opened as a ledger, not a feed.
+        .order_by(Sale.created_at.asc(), Sale.id.asc())
+        .options(selectinload(Sale.items), selectinload(Sale.user))
+    ).all()
+
+    buffer = StringIO()
+    writer = csv.writer(buffer, lineterminator="\r\n")
+    writer.writerow(CSV_COLUMNS)
+    for sale in sales:
+        created = sale.created_at
+        if created.tzinfo is None:
+            # SQLite returns naive datetimes; they were written as UTC.
+            created = created.replace(tzinfo=timezone.utc)
+        cashier = sale.user.username if sale.user else ""
+        for line in sale.items:
+            writer.writerow(
+                [
+                    sale.order_ref,
+                    created.isoformat(),
+                    created.date().isoformat(),
+                    sale.payment,
+                    _csv_safe(cashier),
+                    _csv_safe(line.title),
+                    line.price_cents,
+                    line.quantity,
+                    line.subtotal_cents,
+                    sale.total_cents,
+                    f"{cents_to_dollars(line.price_cents):.2f}",
+                    f"{cents_to_dollars(line.subtotal_cents):.2f}",
+                    f"{cents_to_dollars(sale.total_cents):.2f}",
+                ]
+            )
+
+    filename = f"cashier-sales-{end.date().isoformat()}.csv"
+    return Response(
+        content="\ufeff" + buffer.getvalue(),
+        media_type="text/csv; charset=utf-8",
+        headers={
+            "Content-Disposition": f'attachment; filename="{filename}"',
+            # The window bounds are generated content, so nothing may cache it.
+            "Cache-Control": "no-store",
+        },
     )
 
 

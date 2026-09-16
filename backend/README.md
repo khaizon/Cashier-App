@@ -48,6 +48,8 @@ The sample catalog is placeholder data so the UI has something to sell. Replace
 | GET    | `/api/catalog`    | JWT  | Categories with their items              |
 | POST   | `/api/sales`      | JWT  | Record a sale                            |
 | GET    | `/api/sales`      | JWT  | Recent sales, newest first               |
+| GET    | `/api/sales/stats`| JWT  | Totals, daily series, payment mix, top items |
+| GET    | `/api/sales/export.csv` | JWT | Download sales as CSV               |
 | GET    | `/api/images/{id}`| –    | An image's bytes (see below)             |
 | POST   | `/api/images`     | JWT  | Upload an image, cropped to a square     |
 | GET    | `/api/admin/catalog` | JWT | Full catalog for editing              |
@@ -121,6 +123,33 @@ on startup. It is idempotent and runs after `create_all`. Introspection there
 uses `PRAGMA table_info` on the migration's own connection — `inspect()` caches
 per-table reflection, and checking out a second connection can roll back the
 migration's uncommitted work under a shared-connection pool.
+
+## Sales CSV export
+
+`GET /api/sales/export.csv?days=N` (default 30, max 3650) returns every sale in
+the window, oldest first — an export is read as a ledger, not a feed.
+
+There is **one row per sale line**, so a three-item sale becomes three rows.
+Each line carries its order's own total, which repeats; that is the shape pivot
+tables and per-item reporting expect. Amounts appear twice: integer cents
+(`*_cents`, exact, use these for arithmetic) and as a plain-decimal string
+(`unit_price`, `line_subtotal`, `sale_total`, for display). Timestamps are ISO
+8601 UTC plus a `date_local` column mirroring the reporting page's bucketing.
+
+Two details that matter when the file is opened in Excel or Sheets:
+
+- The body starts with a UTF-8 BOM and uses CRLF line endings, so non-ASCII item
+  names open correctly rather than as mojibake.
+- Item titles and usernames are prefixed with an apostrophe when they begin with
+  `=`, `+`, `-` or `@`. Those characters make a spreadsheet treat the cell as a
+  formula, so a catalogue entry like `=HYPERLINK(...)` would otherwise execute on
+  open. This is formula-injection defence, not cosmetic.
+
+Reporting reads `SaleItem` rows, which copy title and price at sale time, so a
+sale still exports correctly after its item is renamed, repriced or deleted.
+
+The page's download button fetches the file with a bearer token and hands it to
+the browser as a blob; a bare `<a href>` cannot send an `Authorization` header.
 
 ## Design notes
 

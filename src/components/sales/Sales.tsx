@@ -7,6 +7,7 @@ import {
   PeriodTotals,
   SaleReceipt,
   SalesStats,
+  downloadSalesCsv,
   fetchRecentSales,
   fetchSalesStats,
 } from '../../api/client';
@@ -86,7 +87,11 @@ const DailyChart: FC<{ daily: DailyTotal[] }> = ({ daily }) => {
       {daily.length === 0 ? (
         <p className="salesEmpty">No days in this window.</p>
       ) : (
-        <div className="salesChart" role="img" aria-label={hasSales ? 'Daily revenue' : 'No revenue recorded'}>
+        <div
+          className={`salesChart${hasSales ? '' : ' salesChartEmpty'}`}
+          role="img"
+          aria-label={hasSales ? 'Daily revenue' : 'No revenue recorded'}
+        >
           {daily.map((day) => {
             const height = hasSales ? Math.max(2, Math.round((day.revenue / peak) * 100)) : 0;
             return (
@@ -169,6 +174,7 @@ const Sales: FC<SalesProps> = ({ token, onUnauthorized }) => {
   const [recent, setRecent] = useState<SaleReceipt[]>([]);
   const [offset, setOffset] = useState(0);
   const [error, setError] = useState('');
+  const [exporting, setExporting] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -226,17 +232,40 @@ const Sales: FC<SalesProps> = ({ token, onUnauthorized }) => {
           <h1>Recorded sales</h1>
           <p>Every sale the cashier has recorded, newest first.</p>
         </div>
-        <div className="salesPeriods" role="group" aria-label="Reporting period">
-          {PERIODS.map((period) => (
-            <button
-              key={period.days}
-              type="button"
-              className={period.days === days ? 'salesPeriodActive' : undefined}
-              onClick={() => changePeriod(period.days)}
-            >
-              {period.label}
-            </button>
-          ))}
+        <div className="salesTools">
+          <div className="salesPeriods" role="group" aria-label="Reporting period">
+            {PERIODS.map((period) => (
+              <button
+                key={period.days}
+                type="button"
+                className={period.days === days ? 'salesPeriodActive' : undefined}
+                onClick={() => changePeriod(period.days)}
+              >
+                {period.label}
+              </button>
+            ))}
+          </div>
+          <button
+            type="button"
+            className="salesExport"
+            disabled={exporting}
+            title={`Download the last ${days} days as CSV`}
+            onClick={() => {
+              setExporting(true);
+              setError('');
+              downloadSalesCsv(token, days)
+                .catch((err: unknown) => {
+                  if (err instanceof ApiError && err.status === 401) {
+                    onUnauthorized();
+                    return;
+                  }
+                  setError(err instanceof Error ? err.message : 'Could not export the sales CSV.');
+                })
+                .finally(() => setExporting(false));
+            }}
+          >
+            {exporting ? 'exporting…' : '↓ csv'}
+          </button>
         </div>
       </header>
 

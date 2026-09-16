@@ -275,3 +275,37 @@ export function fetchSalesStats(token: string, days: number): Promise<SalesStats
 export function fetchRecentSales(token: string, limit: number, offset: number): Promise<SaleReceipt[]> {
   return request<SaleReceipt[]>(`/api/sales?limit=${limit}&offset=${offset}`, {}, token);
 }
+
+/**
+ * Download the sales CSV for a window.
+ *
+ * The endpoint needs a bearer token, which a plain `<a href>` download cannot
+ * send, so the file is fetched and handed to the browser as a blob. The server
+ * names the file; its suggestion is preferred over anything invented here.
+ */
+export async function downloadSalesCsv(token: string, days: number): Promise<void> {
+  const headers = new Headers({ Authorization: `Bearer ${token}` });
+
+  let response: Response;
+  try {
+    response = await fetch(`${API_BASE_URL}/api/sales/export.csv?days=${days}`, { headers });
+  } catch {
+    throw new ApiError('Cannot reach the server. Is the backend running?', 0);
+  }
+  if (!response.ok) {
+    throw new ApiError(await readErrorMessage(response), response.status);
+  }
+
+  const disposition = response.headers.get('Content-Disposition') ?? '';
+  const match = /filename="?([^";]+)"?/i.exec(disposition);
+  const filename = match?.[1] ?? `cashier-sales-${new Date().toISOString().slice(0, 10)}.csv`;
+
+  const url = URL.createObjectURL(await response.blob());
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+}

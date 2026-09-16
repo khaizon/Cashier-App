@@ -28,8 +28,8 @@
   align-items: center;
   gap: 6px;
   padding: 6px 12px;
-  background-color: var(--grey900);
-  border-bottom: 1px solid var(--grey800);
+  background-color: var(--surface-app);
+  border-bottom: 1px solid var(--border-subtle);
   /* Keep its natural height when the column is squeezed. */
   flex: 0 0 auto;
 }
@@ -39,10 +39,14 @@
   border-radius: 6px;
   font-size: 0.78rem;
   line-height: 1.4;
+  color: var(--text-primary);
+  background-color: transparent;
 }
 
 .appNav button:hover {
-  background-color: var(--grey820);
+  /* Global button:hover paints a pink border; the nav reads better flat. */
+  border-color: transparent;
+  background-color: var(--surface-raised);
 }
 
 .appNav button.appNavActive {
@@ -54,7 +58,7 @@
 .appNavUser {
   margin-left: auto;
   font-size: 0.74rem;
-  color: var(--grey400);
+  color: var(--text-muted);
 }
 
 .appError {

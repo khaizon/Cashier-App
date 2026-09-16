@@ -39,6 +39,18 @@ body {
   --grey820: hsl(0, 0%, 20%);
   --grey860: hsl(0, 0%, 16%);
   --grey900: hsl(0, 0%, 12%);
+
+  /* Semantic surfaces. Components use these instead of naming a grey directly,
+     so a whole page can be themed by remapping them (see the light block at the
+     bottom) rather than repeating a prefers-color-scheme override per file. */
+  --surface-app: var(--grey900);
+  --surface-panel: var(--grey860);
+  --surface-raised: var(--grey820);
+  --surface-hover: var(--grey800);
+  --border-subtle: var(--grey800);
+  --text-primary: var(--pink60);
+  --text-muted: var(--grey400);
+  --chart-empty: var(--grey700);
 }
 body {
   margin: 0;
@@ -110,5 +122,19 @@ button:focus-visible {
   button {
     color: var(--pink500);
     background-color: var(--pink50);
+  }
+
+  /* Remap the semantic surfaces for a light page. Declared last so it wins over
+     the dark defaults above; the raw --grey* values are left alone because the
+     existing pages still reference them directly in their own overrides. */
+  :root {
+    --surface-app: #ffffff;
+    --surface-panel: #ffffff;
+    --surface-raised: var(--pink50);
+    --surface-hover: #f2e4e4;
+    --border-subtle: #e6d5d5;
+    --text-primary: var(--pink500);
+    --text-muted: #9c8484;
+    --chart-empty: #e4d3d3;
   }
 }
