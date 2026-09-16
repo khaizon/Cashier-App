@@ -1,0 +1,166 @@
+/* Theme-aware via the semantic tokens in index.css, so this works in light and
+   dark without its own prefers-color-scheme block. */
+
+.pendingBackdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 220;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background-color: rgba(0, 0, 0, 0.72);
+  overflow: auto;
+}
+
+.pendingCard {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: min(560px, 100%);
+  max-height: 82vh;
+  padding: 16px 18px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  background-color: var(--surface-panel);
+  color: var(--text-primary);
+  text-align: left;
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.45);
+}
+
+.pendingHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.pendingHeader h2 {
+  margin: 0 0 4px;
+  font-size: 1.05rem;
+}
+
+.pendingHeader p {
+  margin: 0;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.pendingHeader button {
+  padding: 0 8px;
+  border: none;
+  background: none;
+  color: inherit;
+  font-size: 1.3rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.pendingNotice {
+  padding: 8px 10px;
+  border-radius: 6px;
+  background-color: var(--surface-raised);
+  border: 1px solid var(--border-subtle);
+  font-size: 0.78rem;
+}
+
+.pendingNotice--warn {
+  border-color: var(--pink500);
+  color: var(--pink300);
+}
+
+.pendingEmpty {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+
+.pendingList {
+  flex: 1;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  overflow-y: auto;
+}
+
+.pendingItem {
+  padding: 9px 0;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.pendingItem--stuck {
+  border-left: 3px solid var(--pink300);
+  padding-left: 8px;
+}
+
+.pendingItemHead {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.8rem;
+}
+
+.pendingWhen {
+  color: var(--text-muted);
+}
+
+.pendingTotal {
+  margin-left: auto;
+  font-weight: 600;
+}
+
+.pendingPay {
+  padding: 1px 7px;
+  border-radius: 999px;
+  background-color: var(--surface-raised);
+  font-size: 0.66rem;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.pendingLines {
+  margin-top: 3px;
+  font-size: 0.8rem;
+  opacity: 0.85;
+}
+
+.pendingAttempts,
+.pendingStuck {
+  margin-top: 3px;
+  font-size: 0.7rem;
+  color: var(--text-muted);
+}
+
+.pendingStuck {
+  color: var(--pink300);
+}
+
+.pendingActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.pendingActions button {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  font: inherit;
+  cursor: pointer;
+}
+
+.pendingActions button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.pendingSecondary {
+  background-color: var(--surface-raised);
+  color: var(--text-primary);
+}
+
+.pendingPrimary {
+  background-color: var(--pink150);
+  color: var(--pink800);
+  font-weight: 600;
+}

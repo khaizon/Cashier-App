@@ -90,7 +90,99 @@ def migration_001_catalogue_images(engine: Engine) -> None:
             logger.info("migration 001: created %s", index_name)
 
 
-MIGRATIONS = (migration_001_catalogue_images,)
+def migration_002_offline_sync(engine: Engine) -> None:
+    """Add the columns an offline till needs to reconcile safely.
+
+    ``client_ref`` is added nullable, backfilled, then indexed: adding a NOT NULL
+    unique column to a table that already has rows cannot work in place.
+    """
+    with engine.begin() as conn:
+        sale_columns = _column_names(conn, "sales")
+        if not sale_columns:
+            return
+
+        if "client_ref" not in sale_columns:
+            conn.execute(text("ALTER TABLE sales ADD COLUMN client_ref VARCHAR(36)"))
+            logger.info("migration 002: added sales.client_ref")
+
+        if "sold_at" not in sale_columns:
+            conn.execute(text("ALTER TABLE sales ADD COLUMN sold_at DATETIME"))
+            logger.info("migration 002: added sales.sold_at")
+
+        if "recorded_at" not in sale_columns:
+            conn.execute(text("ALTER TABLE sales ADD COLUMN recorded_at DATETIME"))
+            # Existing rows were recorded when they were created.
+            conn.execute(text("UPDATE sales SET recorded_at = created_at WHERE recorded_at IS NULL"))
+            logger.info("migration 002: added sales.recorded_at")
+
+        if "price_conflict" not in sale_columns:
+            conn.execute(text("ALTER TABLE sales ADD COLUMN price_conflict BOOLEAN NOT NULL DEFAULT 0"))
+            logger.info("migration 002: added sales.price_conflict")
+
+        # Backfill any row that predates the idempotency key, then enforce
+        # uniqueness. hex(randomblob(16)) is 32 chars of hex — unique in practice
+        # and valid for a client_ref.
+        pending = conn.execute(text("SELECT COUNT(*) FROM sales WHERE client_ref IS NULL")).scalar() or 0
+        if pending:
+            conn.execute(
+                text("UPDATE sales SET client_ref = lower(hex(randomblob(16))) WHERE client_ref IS NULL")
+            )
+            logger.info("migration 002: backfilled %d client_ref value(s)", pending)
+
+        if not _has_index(conn, "sales", "ix_sales_client_ref"):
+            conn.execute(text("CREATE UNIQUE INDEX IF NOT EXISTS ix_sales_client_ref ON sales (client_ref)"))
+            logger.info("migration 002: created ix_sales_client_ref")
+
+        if not _has_index(conn, "sales", "ix_sales_price_conflict"):
+            conn.execute(text("CREATE INDEX IF NOT EXISTS ix_sales_price_conflict ON sales (price_conflict)"))
+            logger.info("migration 002: created ix_sales_price_conflict")
+
+        if not _table_exists(conn, "catalog_meta"):
+            conn.execute(
+                text(
+                    "CREATE TABLE catalog_meta ("
+                    " id INTEGER NOT NULL PRIMARY KEY,"
+                    " revision INTEGER NOT NULL DEFAULT 1,"
+                    " updated_at DATETIME)"
+                )
+            )
+            conn.execute(text("INSERT INTO catalog_meta (id, revision) VALUES (1, 1)"))
+            logger.info("migration 002: created catalog_meta")
+
+
+def migration_003_sale_deletions(engine: Engine) -> None:
+    """Add the audit table for deleted sales.
+
+    ``create_all`` would make this on a fresh database; an upgraded one needs it
+    created here so a delete can be recorded rather than silently lost.
+    """
+    with engine.begin() as conn:
+        if _table_exists(conn, "sale_deletions"):
+            return
+        conn.execute(
+            text(
+                "CREATE TABLE sale_deletions ("
+                " id INTEGER NOT NULL PRIMARY KEY,"
+                " sale_id INTEGER NOT NULL,"
+                " order_ref VARCHAR(16) NOT NULL,"
+                " total_cents INTEGER NOT NULL,"
+                " payment VARCHAR(16) DEFAULT '',"
+                " sold_at DATETIME,"
+                " client_ref VARCHAR(36),"
+                " items_json TEXT DEFAULT '[]',"
+                " reason VARCHAR(255) DEFAULT '',"
+                " deleted_by_id INTEGER REFERENCES users(id) ON DELETE SET NULL,"
+                " deleted_at DATETIME)"
+            )
+        )
+        conn.execute(text("CREATE INDEX IF NOT EXISTS ix_sale_deletions_sale_id ON sale_deletions (sale_id)"))
+        conn.execute(text("CREATE INDEX IF NOT EXISTS ix_sale_deletions_order_ref ON sale_deletions (order_ref)"))
+        conn.execute(text("CREATE INDEX IF NOT EXISTS ix_sale_deletions_deleted_at ON sale_deletions (deleted_at)"))
+        conn.execute(text("CREATE INDEX IF NOT EXISTS ix_sale_deletions_client_ref ON sale_deletions (client_ref)"))
+        logger.info("migration 003: created sale_deletions")
+
+
+MIGRATIONS = (migration_001_catalogue_images, migration_002_offline_sync, migration_003_sale_deletions)
 
 
 def run_migrations(engine: Engine) -> None:

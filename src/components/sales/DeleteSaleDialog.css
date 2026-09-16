@@ -1,0 +1,146 @@
+/* Theme-aware via the semantic tokens in index.css. */
+
+.deleteSaleBackdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 230;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background-color: rgba(0, 0, 0, 0.72);
+  overflow: auto;
+}
+
+.deleteSaleCard {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: min(440px, 100%);
+  padding: 18px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  background-color: var(--surface-panel);
+  color: var(--text-primary);
+  text-align: left;
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.45);
+}
+
+.deleteSaleCard h2 {
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.deleteSaleSummary {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 6px;
+  background-color: var(--surface-raised);
+  font-size: 0.82rem;
+}
+
+.deleteSaleSummary > div {
+  display: flex;
+  gap: 10px;
+}
+
+.deleteSaleSummary dt {
+  flex: 0 0 84px;
+  color: var(--text-muted);
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  line-height: 1.6;
+}
+
+.deleteSaleSummary dd {
+  margin: 0;
+  min-width: 0;
+  word-break: break-word;
+}
+
+.deleteSaleRef {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  letter-spacing: 0.06em;
+}
+
+.deleteSaleWarning {
+  margin: 0;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.deleteSaleReason {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.deleteSaleReason select,
+.deleteSaleCustom {
+  padding: 7px 9px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 5px;
+  background-color: var(--surface-panel);
+  color: var(--text-primary);
+  /* LoginCard.css restyles every `input` app-wide for the sign-in form. */
+  font: inherit;
+  font-size: 0.86rem;
+  text-transform: none;
+  letter-spacing: normal;
+  text-align: left;
+}
+
+.deleteSaleCustom::placeholder {
+  color: var(--text-muted);
+  opacity: 1;
+}
+
+.deleteSaleReason select:focus,
+.deleteSaleCustom:focus {
+  outline: 2px solid var(--pink150);
+  outline-offset: 1px;
+}
+
+.deleteSaleActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.deleteSaleActions button {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  font: inherit;
+  cursor: pointer;
+}
+
+.deleteSaleActions button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.deleteSaleCancel {
+  background-color: var(--surface-raised);
+  color: var(--text-primary);
+}
+
+/* Destructive action: the only saturated red-ish affordance in the app, on
+   purpose. Everything else about deletion is deliberately understated. */
+.deleteSaleConfirm {
+  background-color: #b3261e;
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.deleteSaleConfirm:hover:not(:disabled) {
+  background-color: #8f1d17;
+}

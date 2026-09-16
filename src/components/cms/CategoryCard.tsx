@@ -18,6 +18,17 @@ import ImageCropper from './ImageCropper';
 
 type CategoryCardProps = {
   category: AdminCategory;
+  /** 1-based position in the menu, shown as the order number. */
+  position: number;
+  total: number;
+  /** True while this card is the one being dragged. */
+  dragging: boolean;
+  /** Move this category one slot earlier (-1) or later (+1). */
+  onMove: (categoryId: number, delta: -1 | 1) => void;
+  onDragStart: (categoryId: number) => void;
+  onDragEnd: () => void;
+  /** A dragged category was released over this one. */
+  onDrop: (categoryId: number) => void;
   token: string;
   onCategoryChanged: (category: AdminCategory) => void;
   onCategoryRemoved: (categoryId: number) => void;
@@ -53,6 +64,13 @@ function parsePriceToCents(value: string): number | null {
 
 const CategoryCard: FC<CategoryCardProps> = ({
   category,
+  position,
+  total,
+  dragging,
+  onMove,
+  onDragStart,
+  onDragEnd,
+  onDrop,
   token,
   onCategoryChanged,
   onCategoryRemoved,
@@ -180,8 +198,36 @@ const CategoryCard: FC<CategoryCardProps> = ({
   };
 
   return (
-    <section className="cmsCategory">
+    <section
+      className={dragging ? 'cmsCategory cmsCategoryDragging' : 'cmsCategory'}
+      onDragOver={(event) => {
+        event.preventDefault();
+        event.dataTransfer.dropEffect = 'move';
+      }}
+      onDrop={(event) => {
+        event.preventDefault();
+        onDrop(category.id);
+      }}
+    >
       <header className="cmsCategoryHeader">
+        <span className="cmsCategoryOrder" title="Menu position">
+          {position}
+        </span>
+        <span
+          className="cmsDragHandle"
+          draggable
+          onDragStart={(event) => {
+            event.dataTransfer.effectAllowed = 'move';
+            // Some browsers refuse to begin a drag unless data is attached.
+            event.dataTransfer.setData('text/plain', String(category.id));
+            onDragStart(category.id);
+          }}
+          onDragEnd={onDragEnd}
+          aria-hidden="true"
+          title="Drag to reorder"
+        >
+          ⠿
+        </span>
         <input
           className="cmsCategoryName"
           value={name}
@@ -192,6 +238,26 @@ const CategoryCard: FC<CategoryCardProps> = ({
           }}
           aria-label={`Category name for ${category.name}`}
         />
+        <div className="cmsMoveButtons" role="group" aria-label={'Reorder ' + category.name}>
+          <button
+            type="button"
+            disabled={position === 1}
+            onClick={() => onMove(category.id, -1)}
+            aria-label={'Move ' + category.name + ' earlier'}
+            title="Move earlier"
+          >
+            ↑
+          </button>
+          <button
+            type="button"
+            disabled={position === total}
+            onClick={() => onMove(category.id, 1)}
+            aria-label={'Move ' + category.name + ' later'}
+            title="Move later"
+          >
+            ↓
+          </button>
+        </div>
         <div className="cmsPalette" aria-label="Category palette">
           {(['palette1', 'palette2', 'palette3'] as const).map((slot) => (
             <input

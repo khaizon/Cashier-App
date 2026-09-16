@@ -56,6 +56,7 @@ The sample catalog is placeholder data so the UI has something to sell. Replace
 | POST   | `/api/admin/categories` | JWT | Create a category                  |
 | PATCH  | `/api/admin/categories/{id}` | JWT | Rename / recolour a category  |
 | DELETE | `/api/admin/categories/{id}` | JWT | Delete a category and its items |
+| PUT    | `/api/admin/categories/order` | JWT | Reorder every category (complete id list) |
 | POST   | `/api/admin/items` | JWT | Create an item                          |
 | PATCH  | `/api/admin/items/{id}` | JWT | Update an item                     |
 | DELETE | `/api/admin/items/{id}` | JWT | Delete an item                      |

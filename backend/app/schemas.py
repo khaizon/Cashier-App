@@ -13,7 +13,7 @@ from typing import Literal
 from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy import inspect as sa_inspect
 
-from .models import Category, Item, ItemImage, Sale, SaleItem
+from .models import Category, Item, ItemImage, Sale, SaleDeletion, SaleItem
 
 
 def cents_to_dollars(cents: int) -> float:
@@ -65,6 +65,12 @@ class CategoryOut(BaseModel):
     palette2: str
     palette3: str
     items: list[ItemOut]
+
+
+class CatalogRevisionOut(BaseModel):
+    """Just the counter, for a cheap "has the menu changed?" probe."""
+
+    revision: int
 
 
 class ItemImageOut(BaseModel):
@@ -191,6 +197,17 @@ class CategoryUpdate(BaseModel):
     sort_order: int | None = None
 
 
+class CategoryOrderIn(BaseModel):
+    """The complete category order, front to back.
+
+    ``ids`` must name every existing category exactly once. A partial list is
+    rejected rather than silently leaving categories at duplicate or missing
+    positions: menu order is data the operator set, not something to guess at.
+    """
+
+    ids: list[int] = Field(min_length=1)
+
+
 class ItemCreate(BaseModel):
     category_id: int
     title: str = Field(min_length=1, max_length=160)
@@ -221,6 +238,97 @@ class SaleItemIn(BaseModel):
 class SaleCreate(BaseModel):
     payment: Literal["cash", "paynow"] = "cash"
     items: list[SaleItemIn] = Field(min_length=1)
+    # Optional idempotency key. A client that retries a sale (because it never
+    # saw the response) sends the same value and gets the original sale back
+    # instead of recording a second one.
+    client_ref: str | None = Field(default=None, max_length=36)
+    # Optional device clock. Clamped at write time; see app.routers.sales.
+    sold_at: datetime | None = None
+
+
+class SaleItemSyncIn(BaseModel):
+    """A line as the device saw it, price included.
+
+    Unlike ``SaleItemIn`` this carries the price, because the only honest record
+    of an offline sale is what the customer actually paid. The server still
+    compares it against the catalogue and flags any disagreement.
+    """
+
+    item_id: int
+    quantity: int = Field(gt=0, le=999)
+    price_cents: int = Field(ge=0, le=100_000_000)
+    title: str = Field(default="", max_length=160)
+    # Optional. When the device sends its own subtotal the server verifies it, so
+    # an internally inconsistent entry is rejected rather than trusted.
+    subtotal_cents: int | None = Field(default=None, ge=0, le=100_000_000 * 999)
+
+
+class SaleSyncIn(BaseModel):
+    client_ref: str = Field(min_length=8, max_length=36)
+    payment: Literal["cash", "paynow"] = "cash"
+    sold_at: datetime | None = None
+    # Which catalogue the device priced against; lets the response explain a
+    # conflict precisely rather than just flagging one.
+    catalog_revision: int | None = None
+    items: list[SaleItemSyncIn] = Field(min_length=1)
+
+
+class SaleSyncBatchIn(BaseModel):
+    sales: list[SaleSyncIn] = Field(min_length=1, max_length=500)
+
+
+class SaleSyncResultOut(BaseModel):
+    client_ref: str
+    # recorded: this call created it. duplicate: it already existed.
+    # rejected: this entry was unusable; the rest of the batch still applied.
+    status: Literal["recorded", "duplicate", "rejected"]
+    sale_id: int | None = None
+    order_ref: str | None = None
+    price_conflict: bool = False
+    reason: str | None = None
+
+
+class SaleSyncBatchOut(BaseModel):
+    results: list[SaleSyncResultOut]
+    recorded: int
+    duplicates: int
+    rejected: int
+    conflicts: int
+
+
+class SaleDeleteIn(BaseModel):
+    """A reason is required, not optional.
+
+    Deleting a sale removes money from the day's totals, so "why" is the part an
+    operator needs later. Making it mandatory is the difference between an audit
+    trail and a table of timestamps.
+    """
+
+    reason: str = Field(min_length=1, max_length=255)
+
+
+class SaleDeletionOut(BaseModel):
+    id: int
+    sale_id: int
+    order_ref: str
+    total: float
+    payment: str
+    reason: str
+    deleted_by: str | None
+    deleted_at: datetime
+
+
+def sale_deletion_out(record: SaleDeletion, deleted_by: str | None) -> SaleDeletionOut:
+    return SaleDeletionOut(
+        id=record.id,
+        sale_id=record.sale_id,
+        order_ref=record.order_ref,
+        total=cents_to_dollars(record.total_cents),
+        payment=record.payment,
+        reason=record.reason,
+        deleted_by=deleted_by,
+        deleted_at=record.deleted_at,
+    )
 
 
 class SaleItemOut(BaseModel):
@@ -238,6 +346,10 @@ class SaleOut(BaseModel):
     total: float
     created_at: datetime
     items: list[SaleItemOut]
+    # Offline provenance, omitted from the wire when the sale was recorded live.
+    client_ref: str | None = None
+    sold_at: datetime | None = None
+    price_conflict: bool = False
 
 
 def sale_item_out(line: SaleItem) -> SaleItemOut:
@@ -258,6 +370,9 @@ def sale_out(sale: Sale) -> SaleOut:
         total=cents_to_dollars(sale.total_cents),
         created_at=sale.created_at,
         items=[sale_item_out(line) for line in sale.items],
+        client_ref=sale.client_ref,
+        sold_at=sale.sold_at,
+        price_conflict=bool(sale.price_conflict),
     )
 
 

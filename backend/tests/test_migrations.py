@@ -144,3 +144,117 @@ def test_migration_creates_a_unique_index_on_public_id(legacy_engine):
                     "VALUES (902, 'duplicate-id', X'00', 1, 1, 1, 'h2')"
                 )
             )
+
+
+# --------------------------------------------------- migration 002 (offline sync)
+
+# The pre-offline-sync shape of ``sales``: an existing deployment upgrading to
+# the version that introduced client-side queuing.
+LEGACY_SALES_DDL = """
+    CREATE TABLE sales (
+        id INTEGER NOT NULL PRIMARY KEY,
+        order_ref VARCHAR(16) NOT NULL UNIQUE,
+        user_id INTEGER NOT NULL,
+        payment VARCHAR(16),
+        total_cents INTEGER,
+        created_at DATETIME
+    )
+"""
+
+
+@pytest.fixture
+def legacy_sales_engine():
+    engine = create_engine(
+        "sqlite://",
+        connect_args={"check_same_thread": False},
+        poolclass=StaticPool,
+    )
+    with engine.begin() as conn:
+        conn.execute(text(LEGACY_SALES_DDL))
+        conn.execute(text("CREATE TABLE items (id INTEGER NOT NULL PRIMARY KEY, title VARCHAR(160))"))
+    yield engine
+    engine.dispose()
+
+
+def test_offline_columns_are_added_to_sales(legacy_sales_engine):
+    assert "client_ref" not in columns(legacy_sales_engine, "sales")
+
+    run_migrations(legacy_sales_engine)
+
+    sale_columns = columns(legacy_sales_engine, "sales")
+    assert {"client_ref", "sold_at", "recorded_at", "price_conflict"} <= sale_columns
+
+
+def test_existing_sales_get_a_backfilled_client_ref(legacy_sales_engine):
+    """Pre-existing rows need a key before the unique index can be created."""
+    with legacy_sales_engine.begin() as conn:
+        conn.execute(
+            text(
+                "INSERT INTO sales (id, order_ref, user_id, payment, total_cents, created_at) "
+                "VALUES (1, 'ABC123', 1, 'cash', 300, '2026-01-01 10:00:00')"
+            )
+        )
+
+    run_migrations(legacy_sales_engine)
+
+    with legacy_sales_engine.connect() as conn:
+        client_ref = conn.exec_driver_sql("SELECT client_ref FROM sales WHERE id = 1").scalar()
+        recorded_at = conn.exec_driver_sql("SELECT recorded_at FROM sales WHERE id = 1").scalar()
+    assert client_ref
+    # recorded_at is backfilled from created_at rather than left null.
+    assert recorded_at is not None
+
+
+def test_backfilled_client_refs_are_unique(legacy_sales_engine):
+    with legacy_sales_engine.begin() as conn:
+        for index in range(1, 6):
+            conn.execute(
+                text(
+                    "INSERT INTO sales (id, order_ref, user_id, payment, total_cents, created_at) "
+                    f"VALUES ({index}, 'REF{index:03d}', 1, 'cash', 100, '2026-01-01 10:00:00')"
+                )
+            )
+
+    run_migrations(legacy_sales_engine)
+
+    with legacy_sales_engine.connect() as conn:
+        distinct = conn.exec_driver_sql("SELECT COUNT(DISTINCT client_ref) FROM sales").scalar()
+    assert distinct == 5
+
+
+def test_client_ref_index_is_unique(legacy_sales_engine):
+    run_migrations(legacy_sales_engine)
+
+    with legacy_sales_engine.begin() as conn:
+        conn.execute(
+            text(
+                "INSERT INTO sales (id, order_ref, user_id, payment, total_cents, created_at, client_ref) "
+                "VALUES (1, 'AAA111', 1, 'cash', 100, '2026-01-01 10:00:00', 'shared-ref')"
+            )
+        )
+
+    with pytest.raises(IntegrityError):
+        with legacy_sales_engine.begin() as conn:
+            conn.execute(
+                text(
+                    "INSERT INTO sales (id, order_ref, user_id, payment, total_cents, created_at, client_ref) "
+                    "VALUES (2, 'BBB222', 1, 'cash', 100, '2026-01-01 10:00:00', 'shared-ref')"
+                )
+            )
+
+
+def test_catalog_meta_is_created_and_seeded(legacy_sales_engine):
+    run_migrations(legacy_sales_engine)
+
+    with legacy_sales_engine.connect() as conn:
+        revision = conn.exec_driver_sql("SELECT revision FROM catalog_meta WHERE id = 1").scalar()
+    assert revision == 1
+
+
+def test_offline_migration_is_idempotent(legacy_sales_engine):
+    run_migrations(legacy_sales_engine)
+    run_migrations(legacy_sales_engine)
+
+    assert "client_ref" in columns(legacy_sales_engine, "sales")
+    with legacy_sales_engine.connect() as conn:
+        assert conn.exec_driver_sql("SELECT COUNT(*) FROM catalog_meta").scalar() == 1

@@ -19,11 +19,13 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import selectinload
 
 from ..deps import CurrentUser, DbSession
+from ..catalog_revision import bump_catalog_revision
 from ..models import Category, Item, ItemImage
 from ..schemas import (
     AdminCategoryOut,
     AdminItemOut,
     CategoryCreate,
+    CategoryOrderIn,
     CategoryUpdate,
     ItemCreate,
     ItemUpdate,
@@ -83,7 +85,17 @@ def _require_image(db: DbSession, image_id: int | None) -> None:
 
 
 def _commit(db: DbSession, *, conflict_detail: str) -> None:
+    """Commit a catalogue mutation and advance the catalogue revision.
+
+    Every catalogue write funnels through here so the revision can never drift
+    out of step with the data an offline till is revalidating against.
+
+    The bump lives *inside* the try because it flushes, and a pending constraint
+    violation (a duplicate category name, say) surfaces on that flush rather than
+    on commit — letting it escape would turn a 409 into a 500.
+    """
     try:
+        bump_catalog_revision(db)
         db.commit()
     except IntegrityError as exc:
         db.rollback()
@@ -93,14 +105,44 @@ def _commit(db: DbSession, *, conflict_detail: str) -> None:
 # ----------------------------------------------------------------- categories
 
 
+def _all_categories(db: DbSession) -> list[Category]:
+    """Every category in menu order, with items and images eager-loaded."""
+    return list(
+        db.scalars(
+            select(Category)
+            .options(selectinload(Category.items).selectinload(Item.image))
+            .order_by(Category.sort_order, Category.id)
+        ).all()
+    )
+
+
 @router.get("/catalog", response_model=list[AdminCategoryOut], summary="Full catalog for editing")
 def read_admin_catalog(db: DbSession, _user: CurrentUser) -> list[AdminCategoryOut]:
-    categories = db.scalars(
-        select(Category)
-        .options(selectinload(Category.items).selectinload(Item.image))
-        .order_by(Category.sort_order, Category.id)
-    ).all()
-    return [admin_category_out(category) for category in categories]
+    return [admin_category_out(category) for category in _all_categories(db)]
+
+
+@router.put("/categories/order", response_model=list[AdminCategoryOut], summary="Reorder every category")
+def reorder_categories(payload: CategoryOrderIn, db: DbSession, _user: CurrentUser) -> list[AdminCategoryOut]:
+    """Assign menu positions from a complete, explicit ordering.
+
+    PUT rather than a per-category ``sort_order`` patch: the operator is
+    reordering the menu, not one row, and sending the whole list in one request
+    keeps the stored order internally consistent if two edits race. The request
+    must name every category exactly once so a stale client cannot silently drop
+    one off the end of the menu.
+    """
+    existing = {category.id: category for category in db.scalars(select(Category)).all()}
+    if len(payload.ids) != len(set(payload.ids)) or set(payload.ids) != set(existing):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="The order must list every category exactly once.",
+        )
+
+    for position, category_id in enumerate(payload.ids):
+        existing[category_id].sort_order = position
+
+    _commit(db, conflict_detail="Could not save the category order.")
+    return [admin_category_out(category) for category in _all_categories(db)]
 
 
 @router.post("/categories", response_model=AdminCategoryOut, status_code=status.HTTP_201_CREATED)
@@ -139,7 +181,7 @@ def delete_category(category_id: int, db: DbSession, _user: CurrentUser) -> Resp
     category = _load_category(db, category_id)
     # Items cascade at the DB level (ON DELETE CASCADE, PRAGMA-enabled).
     db.delete(category)
-    db.commit()
+    _commit(db, conflict_detail="Could not delete the category.")
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
@@ -162,7 +204,7 @@ def create_item(payload: ItemCreate, db: DbSession, _user: CurrentUser) -> Admin
         sort_order=payload.sort_order if payload.sort_order is not None else _next_item_sort(db, payload.category_id),
     )
     db.add(item)
-    db.commit()
+    _commit(db, conflict_detail="Could not create the item.")
     return admin_item_out(_load_item(db, item.id))
 
 
@@ -198,7 +240,7 @@ def update_item(item_id: int, payload: ItemUpdate, db: DbSession, _user: Current
     if "sort_order" in fields and fields["sort_order"] is not None:
         item.sort_order = fields["sort_order"]
 
-    db.commit()
+    _commit(db, conflict_detail="Could not update the item.")
     return admin_item_out(_load_item(db, item_id))
 
 
@@ -206,7 +248,7 @@ def update_item(item_id: int, payload: ItemUpdate, db: DbSession, _user: Current
 def delete_item(item_id: int, db: DbSession, _user: CurrentUser) -> Response:
     item = _load_item(db, item_id)
     db.delete(item)
-    db.commit()
+    _commit(db, conflict_detail="Could not delete the item.")
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 

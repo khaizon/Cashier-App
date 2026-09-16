@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 
-from sqlalchemy import DateTime, ForeignKey, Integer, LargeBinary, String
+from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, LargeBinary, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .database import Base
@@ -108,9 +108,23 @@ class Sale(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     order_ref: Mapped[str] = mapped_column(String(16), unique=True, index=True)
+    # Client-generated idempotency key. A till that rings a sale offline cannot
+    # know whether a lost response meant success, so a replay carries the same
+    # ref and the unique index makes the retry return the original row instead of
+    # selling the item twice.
+    client_ref: Mapped[str | None] = mapped_column(String(36), unique=True, index=True, nullable=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
     payment: Mapped[str] = mapped_column(String(16))
     total_cents: Mapped[int] = mapped_column(Integer)
+    # When the sale actually happened on the device. Authoritative for reporting
+    # when present (clamped at sync), because an offline sale may be reconciled
+    # long after the fact.
+    sold_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    # Server clock at reconciliation, kept so device time is always auditable.
+    recorded_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    # Set when a synced snapshot disagrees with the catalogue at sync time. The
+    # sale still records the price the customer actually paid.
+    price_conflict: Mapped[bool] = mapped_column(Boolean, default=False, index=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, index=True)
 
     user: Mapped[User] = relationship(back_populates="sales")
@@ -140,3 +154,53 @@ class SaleItem(Base):
     subtotal_cents: Mapped[int] = mapped_column(Integer)
 
     sale: Mapped[Sale] = relationship(back_populates="items")
+
+
+class CatalogMeta(Base):
+    """A single row tracking the catalogue revision.
+
+    Bumped by every catalogue mutation so an offline till can revalidate with one
+    cheap conditional request instead of re-downloading, and so it can record the
+    revision a queued sale was priced against.
+    """
+
+    __tablename__ = "catalog_meta"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    revision: Mapped[int] = mapped_column(Integer, default=1)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, onupdate=utcnow)
+
+
+class SaleDeletion(Base):
+    """An audit record for a deleted sale.
+
+    Deleting a sale removes it from every report, so the fact that it existed and
+    who removed it must survive somewhere. This row is written in the same
+    transaction as the delete and keeps a snapshot of what was removed, since the
+    sale row itself is about to be gone.
+
+    Deliberately not a soft delete: the operator asked for the transaction to go
+    away, and a hidden-but-present row would silently keep counting towards some
+    future report that forgot to filter it.
+    """
+
+    __tablename__ = "sale_deletions"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    # Plain columns, not foreign keys: the referenced rows are deleted, and this
+    # record has to outlive them.
+    sale_id: Mapped[int] = mapped_column(Integer, index=True)
+    order_ref: Mapped[str] = mapped_column(String(16), index=True)
+    total_cents: Mapped[int] = mapped_column(Integer)
+    payment: Mapped[str] = mapped_column(String(16), default="")
+    # The sale's own timestamp, so a deletion can still be placed in time.
+    sold_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    # The deleted sale's idempotency key, remembered so a queued offline retry
+    # cannot resurrect a sale an operator deliberately removed. Without this,
+    # deleting a synced sale would simply be undone by the next sync attempt.
+    client_ref: Mapped[str | None] = mapped_column(String(36), index=True, nullable=True)
+    # JSON array of the removed lines: [{title, quantity, price_cents}].
+    items_json: Mapped[str] = mapped_column(Text, default="[]")
+    reason: Mapped[str] = mapped_column(String(255), default="")
+    deleted_by_id: Mapped[int | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+    deleted_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, index=True)

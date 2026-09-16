@@ -147,7 +147,9 @@ const SelectedItems = () => {
         </button>
       </div>
       <Modal visible={showDialog} setVisible={setShowDialog}>
-        <ConfirmRecord />
+        {/* Recording or queuing a sale finishes the order, so clear the cart —
+            otherwise the persisted cart would offer to sell it a second time. */}
+        <ConfirmRecord onRecorded={() => dispatch({ type: 'RESET', payload: {} as Item })} />
       </Modal>
       <Modal visible={showComputeChange} setVisible={setShowComputeChange}>
         <ComputeChange />

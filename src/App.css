@@ -61,6 +61,38 @@
   color: var(--text-muted);
 }
 
+/* Connectivity + queue state. Clickable: it opens the pending-sales drawer. */
+.appNav button.appSyncChip {
+  margin-left: 10px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  font-size: 0.7rem;
+  letter-spacing: 0.02em;
+}
+
+.appNav button.appSyncChip--online {
+  background-color: var(--surface-raised);
+  color: var(--text-muted);
+}
+
+.appNav button.appSyncChip--warn {
+  background-color: rgba(232, 200, 120, 0.2);
+  border-color: rgba(232, 200, 120, 0.55);
+  color: rgb(214, 178, 96);
+}
+
+.appNav button.appSyncChip--offline {
+  background-color: var(--pink800);
+  border-color: var(--pink300);
+  color: var(--pink100);
+}
+
+.appNav button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
 .appError {
   position: fixed;
   top: 0;

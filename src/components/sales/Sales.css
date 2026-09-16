@@ -1,5 +1,7 @@
 .sales {
-  height: 100vh;
+  /* Fills .appView rather than the viewport; see the note in Cms.css. */
+  height: 100%;
+  box-sizing: border-box;
   overflow-y: auto;
   padding: 18px 22px 60px;
   background-color: var(--surface-app);
@@ -347,6 +349,38 @@
 
 .salesLines {
   opacity: 0.85;
+}
+
+/* Understated until hovered: deletion is available, but should not invite itself. */
+.salesDelete {
+  padding: 3px 9px;
+  border: 1px solid transparent;
+  border-radius: 5px;
+  background: none;
+  color: var(--text-muted);
+  font: inherit;
+  font-size: 0.72rem;
+  cursor: pointer;
+}
+
+.salesDelete:hover,
+.salesDelete:focus-visible {
+  border-color: #b3261e;
+  background-color: rgba(179, 38, 30, 0.12);
+  color: #d9695f;
+}
+
+/* Column header text that exists for screen readers only. */
+.salesVisuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 .salesPager {

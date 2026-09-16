@@ -18,7 +18,7 @@ from collections.abc import Generator
 from pathlib import Path
 
 import pytest
-from playwright.sync_api import Browser, Page, sync_playwright
+from playwright.sync_api import Browser, BrowserContext, Page, sync_playwright
 
 ROOT = Path(__file__).resolve().parents[1]
 BACKEND = ROOT / "backend"
@@ -29,7 +29,23 @@ FRONTEND_PORT = int(os.environ.get("E2E_FRONTEND_PORT", "4173"))
 # Everything is pinned to IPv4: Node resolves `localhost` to ::1 first, which
 # would make `vite preview` bind an IPv6-only socket that uvicorn cannot answer.
 HOST = "127.0.0.1"
-BASE_URL = f"http://{HOST}:{FRONTEND_PORT}/Cashier-App/"
+
+# Must match the VITE_BASE_PATH the bundle under test was built with, because
+# `vite preview` serves the build at that base. The default mirrors
+# vite.config.ts, which keeps GitHub Pages working unchanged.
+def _base_path() -> str:
+    raw = os.environ.get("E2E_BASE_PATH")
+    if raw is None:
+        return "/Cashier-App/"
+    trimmed = raw.strip()
+    if trimmed in ("", "/", "./"):
+        return "/"
+    return f"/{trimmed.strip('/')}/"
+
+
+BASE_PATH = _base_path()
+BASE_URL = f"http://{HOST}:{FRONTEND_PORT}{BASE_PATH}"
+API_URL = f"http://{HOST}:{BACKEND_PORT}"
 
 E2E_USERNAME = "e2e"
 E2E_PASSWORD = "e2e-password"
@@ -71,7 +87,25 @@ def servers(tmp_path_factory: pytest.TempPathFactory) -> Generator[None, None, N
         **os.environ,
         "CASHIER_DATABASE_URL": f"sqlite:///{database}",
         "CASHIER_SECRET_KEY": "e2e-secret-key-that-is-long-enough-for-hs256",
+        # Keep the preview in step with the base the assertions expect.
+        "VITE_BASE_PATH": BASE_PATH,
     }
+
+    # Point the app at the backend under test.
+    #
+    # `public/config.js` ships `apiBaseUrl: "/"` because in the cluster nginx
+    # proxies /api to the backend service. `vite preview` does NOT proxy, so
+    # leaving it as "/" sends every API call to the static server — GETs get the
+    # SPA fallback (HTML 200) and POSTs get a 404. Writing the file here is the
+    # same ConfigMap seam the container uses, and keeps the bundle untouched.
+    (ROOT / "docs" / "config.js").write_text(
+        "// Written by the e2e harness.\n"
+        "window.__CASHIER_CONFIG__ = {\n"
+        f"  basePath: {BASE_PATH!r},\n"
+        f"  apiBaseUrl: {API_URL!r},\n"
+        "};\n",
+        encoding="utf-8",
+    )
 
     # Seed a known user and catalog into the throwaway database.
     subprocess.run(
@@ -92,6 +126,10 @@ def servers(tmp_path_factory: pytest.TempPathFactory) -> Generator[None, None, N
     frontend = subprocess.Popen(
         ["npm", "run", "preview", "--", "--host", HOST, "--port", str(FRONTEND_PORT)],
         cwd=ROOT,
+        # `vite preview` reads the base from vite.config.ts, so it needs the same
+        # VITE_BASE_PATH the bundle was built with. Without it, preview serves at
+        # the default base and 302-redirects the root-mode URLs.
+        env=env,
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
     )
@@ -118,10 +156,20 @@ def browser() -> Generator[Browser, None, None]:
 
 
 @pytest.fixture
-def page(browser: Browser, servers: None) -> Generator[Page, None, None]:
-    context = browser.new_context()
+def context(browser: Browser) -> Generator[BrowserContext, None, None]:
+    """A fresh browser context per test.
+
+    Exposed as its own fixture so the offline specs can call ``set_offline`` on
+    it; ``page`` below builds on the same context.
+    """
+    browser_context = browser.new_context()
+    yield browser_context
+    browser_context.close()
+
+
+@pytest.fixture
+def page(context: BrowserContext, servers: None) -> Generator[Page, None, None]:
     yield context.new_page()
-    context.close()
 
 
 @pytest.fixture
@@ -141,4 +189,4 @@ def login(page: Page, username: str = E2E_USERNAME, password: str = E2E_PASSWORD
 
 
 # Re-exported for tests.
-__all__ = ["BASE_URL", "E2E_PASSWORD", "E2E_USERNAME", "login"]
+__all__ = ["API_URL", "BASE_PATH", "BASE_URL", "E2E_PASSWORD", "E2E_USERNAME", "login"]

@@ -81,9 +81,10 @@ def test_expired_or_tampered_token_is_rejected(page: Page):
     assert page.evaluate("localStorage.getItem('cashier.token')") is None
 
 
-@pytest.mark.parametrize("path", ["/Cashier-App/"])
-def test_no_uncaught_errors_on_load(page: Page, console_errors: list[str], path: str):
-    page.goto(BASE_URL + path.lstrip("/"))
+def test_no_uncaught_errors_on_load(page: Page, console_errors: list[str]):
+    # Uses the configured base so the suite works both at the root and under
+    # /Cashier-App/; the path used to be hardcoded to the subpath.
+    page.goto(BASE_URL)
     page.wait_for_load_state("networkidle")
 
     assert console_errors == [], console_errors

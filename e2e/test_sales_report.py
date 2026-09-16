@@ -12,7 +12,7 @@ import io
 import re
 from pathlib import Path
 
-from playwright.sync_api import Page, expect
+from playwright.sync_api import BrowserContext, Page, expect
 
 from conftest import login
 
@@ -84,7 +84,7 @@ def test_today_card_covers_todays_transactions(page: Page):
     day_label = rows.first.locator(".salesWhen").inner_text()
     todays_rows = transactions.locator("tbody tr", has=page.locator(f".salesWhen:text-is('{day_label}')"))
     row_total = sum(
-        float(re.sub(r"[^0-9.]", "", todays_rows.nth(index).locator("td").last.inner_text()))
+        float(re.sub(r"[^0-9.]", "", todays_rows.nth(index).locator("td.money").last.inner_text()))
         for index in range(todays_rows.count())
     )
 
@@ -196,3 +196,85 @@ def test_export_is_scoped_to_the_selected_period(page: Page):
 
     assert authorizations, "no export request observed"
     assert "days=30" in authorizations[-1], authorizations
+
+
+def period_revenue(page: Page) -> float:
+    """The 'Last N days' card, found by its label rather than by position."""
+    card = page.locator(".salesCard", has=page.get_by_text("Last 14 days", exact=False)).first
+    return float(re.sub(r"[^0-9.]", "", card.locator(".salesCardValue").inner_text()))
+
+
+# ------------------------------------------------------------------- deleting
+
+
+def transactions(page: Page):
+    """Scoped to the Transactions panel: 'Top sellers' is also a .salesTable."""
+    return page.locator(".salesPanel", has_text="Transactions")
+
+
+def delete_prompt(page: Page, order_ref: str):
+    return page.get_by_role("dialog", name=f"Delete transaction {order_ref}")
+
+
+def test_deleting_a_transaction_requires_confirmation(page: Page):
+    login(page)
+    order_ref = record_sale(page, "Espresso", times=1)
+    open_sales(page)
+
+    row = transactions(page).locator("tbody tr", has_text=order_ref)
+    expect(row).to_have_count(1)
+    row.get_by_role("button", name=f"Delete transaction {order_ref}").click()
+
+    prompt = delete_prompt(page, order_ref)
+    expect(prompt).to_be_visible()
+    # The prompt names the exact transaction and states the consequence.
+    expect(prompt).to_contain_text(order_ref)
+    expect(prompt).to_contain_text("$3.00")
+    expect(prompt).to_contain_text("cannot be undone")
+
+    # Cancelling must leave the sale alone — the whole point of the prompt.
+    prompt.get_by_role("button", name="cancel").click()
+    expect(prompt).to_be_hidden()
+    expect(transactions(page).locator("tbody tr", has_text=order_ref)).to_have_count(1)
+
+
+def test_confirming_the_prompt_removes_the_transaction(page: Page, console_errors: list[str]):
+    login(page)
+    order_ref = record_sale(page, "Flat White", times=1)  # $5.00
+    open_sales(page)
+
+    before = period_revenue(page)
+
+    row = transactions(page).locator("tbody tr", has_text=order_ref)
+    row.get_by_role("button", name=f"Delete transaction {order_ref}").click()
+
+    prompt = delete_prompt(page, order_ref)
+    expect(prompt).to_be_visible()
+    prompt.get_by_role("button", name="delete transaction").click()
+    expect(prompt).to_be_hidden(timeout=15_000)
+
+    # Gone from the table...
+    expect(transactions(page).locator("tbody tr", has_text=order_ref)).to_have_count(0)
+    # ...and the day's total dropped by exactly this sale.
+    after = period_revenue(page)
+    assert abs((before - after) - 5.0) < 0.01, (before, after)
+
+    assert console_errors == [], console_errors
+
+
+def test_a_failed_delete_leaves_the_transaction_in_place(page: Page, context: BrowserContext):
+    login(page)
+    order_ref = record_sale(page, "Green Tea", times=1)
+    open_sales(page)
+
+    # Force the delete to fail server-side; the row must survive.
+    page.route(re.compile(r"/api/sales/\d+$"), lambda route: route.fulfill(status=500, body='{"detail":"boom"}'))
+
+    row = transactions(page).locator("tbody tr", has_text=order_ref)
+    row.get_by_role("button", name=f"Delete transaction {order_ref}").click()
+    prompt = delete_prompt(page, order_ref)
+    prompt.get_by_role("button", name="delete transaction").click()
+
+    expect(page.locator(".salesError")).to_be_visible(timeout=15_000)
+    page.unroute(re.compile(r"/api/sales/\d+$"))
+    expect(transactions(page).locator("tbody tr", has_text=order_ref)).to_have_count(1)

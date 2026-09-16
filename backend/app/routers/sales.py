@@ -7,6 +7,7 @@ dictate what it pays; the client only sends item ids and quantities.
 from __future__ import annotations
 
 import csv
+import json
 import secrets
 import string
 from collections import Counter, defaultdict
@@ -15,10 +16,11 @@ from io import StringIO
 
 from fastapi import APIRouter, HTTPException, Query, Response, status
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, selectinload
 
 from ..deps import CurrentUser, DbSession
-from ..models import Item, Sale, SaleItem
+from ..models import Item, Sale, SaleDeletion, SaleItem, User
 from ..schemas import (
     DailyTotalOut,
     PaymentSplitOut,
@@ -26,9 +28,15 @@ from ..schemas import (
     SalesRangeOut,
     SalesStatsOut,
     SaleCreate,
+    SaleDeleteIn,
+    SaleDeletionOut,
     SaleOut,
+    SaleSyncBatchIn,
+    SaleSyncBatchOut,
+    SaleSyncResultOut,
     TopItemOut,
     cents_to_dollars,
+    sale_deletion_out,
     sale_out,
 )
 
@@ -52,8 +60,63 @@ def _allocate_order_ref(db: Session) -> str:
     raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Could not allocate an order reference")
 
 
+# Device clocks are not trustworthy, so a client-supplied sold_at is accepted
+# only inside this window. Anything outside is replaced by server time and
+# flagged, because an unclamped timestamp lets one bad clock corrupt reporting.
+MAX_BACKDATE_DAYS = 30
+MAX_FUTURE_MINUTES = 60
+
+
+def _resolve_sold_at(value: datetime | None) -> tuple[datetime | None, bool]:
+    """Return ``(sold_at, rejected)`` for a client-supplied timestamp."""
+    if value is None:
+        return None, False
+    if value.tzinfo is None:
+        value = value.replace(tzinfo=timezone.utc)
+
+    now = datetime.now(timezone.utc)
+    if value < now - timedelta(days=MAX_BACKDATE_DAYS) or value > now + timedelta(minutes=MAX_FUTURE_MINUTES):
+        return None, True
+    return value, False
+
+
+def _existing_sale(db: Session, client_ref: str | None) -> Sale | None:
+    """Idempotency lookup: has this device already recorded this sale?"""
+    if not client_ref:
+        return None
+    return db.scalar(select(Sale).where(Sale.client_ref == client_ref).options(selectinload(Sale.items)))
+
+
+def _deleted_ref(db: Session, client_ref: str | None) -> SaleDeletion | None:
+    """Was this sale recorded and then deliberately deleted?
+
+    The sale row is gone, so its idempotency key would otherwise be free again
+    and a queued offline retry would quietly recreate a sale an operator removed.
+    """
+    if not client_ref:
+        return None
+    return db.scalar(select(SaleDeletion).where(SaleDeletion.client_ref == client_ref))
+
+
 @router.post("/sales", response_model=SaleOut, status_code=status.HTTP_201_CREATED, summary="Record a sale")
 def create_sale(payload: SaleCreate, db: DbSession, user: CurrentUser) -> SaleOut:
+    # A replay of an already-recorded sale returns the original rather than
+    # selling twice. The client cannot tell a lost response from a failure, so
+    # this is what makes a retry safe.
+    existing = _existing_sale(db, payload.client_ref)
+    if existing is not None:
+        return sale_out(existing)
+
+    deleted = _deleted_ref(db, payload.client_ref)
+    if deleted is not None:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=(
+                f"Sale {deleted.order_ref} was already recorded and then deleted "
+                f"({deleted.reason}). It cannot be re-recorded."
+            ),
+        )
+
     # Collapse repeated ids so the same item sent twice becomes one line.
     quantities: dict[int, int] = {}
     for line in payload.items:
@@ -68,11 +131,16 @@ def create_sale(payload: SaleCreate, db: DbSession, user: CurrentUser) -> SaleOu
             detail=f"Unknown item id(s): {', '.join(str(item_id) for item_id in missing)}",
         )
 
+    sold_at, _rejected = _resolve_sold_at(payload.sold_at)
+
     sale = Sale(
         order_ref=_allocate_order_ref(db),
+        client_ref=payload.client_ref,
         user_id=user.id,
         payment=payload.payment,
         total_cents=0,
+        sold_at=sold_at,
+        price_conflict=False,
     )
 
     total_cents = 0
@@ -97,6 +165,151 @@ def create_sale(payload: SaleCreate, db: DbSession, user: CurrentUser) -> SaleOu
     return sale_out(sale)
 
 
+@router.post("/sales/sync", response_model=SaleSyncBatchOut, summary="Reconcile sales queued offline")
+def sync_sales(payload: SaleSyncBatchIn, db: DbSession, user: CurrentUser) -> SaleSyncBatchOut:
+    """Apply a batch of sales rung up while the till had no connection.
+
+    Two rules make this safe:
+
+    * Idempotent per ``client_ref`` — a batch replayed after a lost response
+      returns the already-stored sales instead of duplicating them.
+    * The price the customer actually paid is what gets recorded. The server
+      still compares each snapshot against the current catalogue, but a
+      disagreement is *flagged* rather than silently re-priced, because the
+      money in the drawer followed the old price.
+
+    Partial success is deliberate: one unusable entry must not discard the rest,
+    since those are real sales that would otherwise be lost.
+    """
+    results: list[SaleSyncResultOut] = []
+    recorded = duplicates = rejected = conflicts = 0
+
+    for entry in payload.sales:
+        existing = _existing_sale(db, entry.client_ref)
+        if existing is not None:
+            duplicates += 1
+            results.append(
+                SaleSyncResultOut(
+                    client_ref=entry.client_ref,
+                    status="duplicate",
+                    sale_id=existing.id,
+                    order_ref=existing.order_ref,
+                    price_conflict=bool(existing.price_conflict),
+                )
+            )
+            continue
+
+        # A sale an operator deleted must not come back on the next sync — the
+        # device has no way of knowing it was removed.
+        if _deleted_ref(db, entry.client_ref) is not None:
+            rejected += 1
+            results.append(
+                SaleSyncResultOut(
+                    client_ref=entry.client_ref,
+                    status="rejected",
+                    reason="This sale was recorded and then deleted. It will not be re-created.",
+                )
+            )
+            continue
+
+        subtotal_mismatch = any(
+            line.subtotal_cents is not None and line.subtotal_cents != line.price_cents * line.quantity
+            for line in entry.items
+        )
+        if subtotal_mismatch:
+            rejected += 1
+            results.append(
+                SaleSyncResultOut(
+                    client_ref=entry.client_ref,
+                    status="rejected",
+                    reason="A line's subtotal does not match price_cents * quantity.",
+                )
+            )
+            continue
+
+        catalog_items = {
+            item.id: item for item in db.scalars(select(Item).where(Item.id.in_([line.item_id for line in entry.items])))
+        }
+
+        # Price drift: the device priced against a catalogue that has since moved.
+        conflict = any(
+            line.item_id in catalog_items and catalog_items[line.item_id].price_cents != line.price_cents
+            for line in entry.items
+        )
+
+        sold_at, _rejected_at = _resolve_sold_at(entry.sold_at)
+
+        sale = Sale(
+            order_ref=_allocate_order_ref(db),
+            client_ref=entry.client_ref,
+            user_id=user.id,
+            payment=entry.payment,
+            total_cents=0,
+            sold_at=sold_at,
+            price_conflict=conflict,
+        )
+        for line in entry.items:
+            catalog_item = catalog_items.get(line.item_id)
+            # Keep the catalogue's current title (the device's may be stale), but
+            # always the device's price, which is what was actually charged.
+            title = catalog_item.title if catalog_item is not None else (line.title or "Unknown item")
+            sale.items.append(
+                SaleItem(
+                    item_id=line.item_id if catalog_item is not None else None,
+                    title=title,
+                    price_cents=line.price_cents,
+                    quantity=line.quantity,
+                    subtotal_cents=line.price_cents * line.quantity,
+                )
+            )
+        sale.total_cents = sum(line.subtotal_cents for line in sale.items)
+        db.add(sale)
+
+        try:
+            db.flush()
+        except IntegrityError:
+            # Two devices raced the same client_ref and the other one won.
+            db.rollback()
+            stored = _existing_sale(db, entry.client_ref)
+            if stored is None:
+                raise
+            duplicates += 1
+            results.append(
+                SaleSyncResultOut(
+                    client_ref=entry.client_ref,
+                    status="duplicate",
+                    sale_id=stored.id,
+                    order_ref=stored.order_ref,
+                    price_conflict=bool(stored.price_conflict),
+                )
+            )
+            continue
+
+        recorded += 1
+        conflicts += 1 if conflict else 0
+        results.append(
+            SaleSyncResultOut(
+                client_ref=entry.client_ref,
+                status="recorded",
+                sale_id=sale.id,
+                order_ref=sale.order_ref,
+                price_conflict=conflict,
+                reason="Priced differently from the current catalogue; recorded at the price paid."
+                if conflict
+                else None,
+            )
+        )
+
+    db.commit()
+    return SaleSyncBatchOut(
+        results=results,
+        recorded=recorded,
+        duplicates=duplicates,
+        rejected=rejected,
+        conflicts=conflicts,
+    )
+
+
 @router.get("/sales", response_model=list[SaleOut], summary="Recent sales, newest first")
 def list_sales(
     db: DbSession,
@@ -112,6 +325,31 @@ def list_sales(
         .offset(offset)
     ).all()
     return [sale_out(sale) for sale in sales]
+
+
+@router.get(
+    "/sales/deletions",
+    response_model=list[SaleDeletionOut],
+    summary="Audit trail of deleted sales",
+)
+def list_sale_deletions(
+    db: DbSession,
+    _user: CurrentUser,
+    limit: int = Query(50, ge=1, le=200),
+) -> list[SaleDeletionOut]:
+    """Newest first. Kept separate from the sales list so a deletion is visible."""
+    records = db.scalars(
+        select(SaleDeletion).order_by(SaleDeletion.deleted_at.desc(), SaleDeletion.id.desc()).limit(limit)
+    ).all()
+
+    names: dict[int, str] = {}
+    for record in records:
+        if record.deleted_by_id is not None and record.deleted_by_id not in names:
+            account = db.get(User, record.deleted_by_id)
+            if account is not None:
+                names[record.deleted_by_id] = account.username
+
+    return [sale_deletion_out(record, names.get(record.deleted_by_id or -1)) for record in records]
 
 
 def _totals(revenue_cents: int, transactions: int, items_sold: int) -> PeriodTotalsOut:
@@ -154,6 +392,54 @@ CSV_COLUMNS = (
     "line_subtotal",
     "sale_total",
 )
+
+
+
+
+@router.delete("/sales/{sale_id}", response_model=SaleDeletionOut, summary="Delete a recorded sale")
+def delete_sale(sale_id: int, payload: SaleDeleteIn, db: DbSession, user: CurrentUser) -> SaleDeletionOut:
+    """Remove a sale, keeping an audit record of what was removed and why.
+
+    The sale disappears from the list, the stats and the CSV export, and the
+    ``sale_items`` cascade away with it. A ``sale_deletions`` row is written in
+    the same transaction carrying a snapshot — order ref, total, and the priced
+    lines — because money leaving the ledger has to leave a trace.
+    """
+    sale = db.scalar(select(Sale).where(Sale.id == sale_id).options(selectinload(Sale.items), selectinload(Sale.user)))
+    if sale is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Sale not found.")
+
+    reason = payload.reason.strip()
+    if not reason:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+            detail="A reason is required to delete a sale.",
+        )
+
+    # Captured before the delete: the sale row is about to stop existing.
+    deleted_by_name = sale.user.username if sale.user is not None else None
+    snapshot = [
+        {"title": line.title, "quantity": line.quantity, "price_cents": line.price_cents}
+        for line in sale.items
+    ]
+
+    record = SaleDeletion(
+        sale_id=sale.id,
+        order_ref=sale.order_ref,
+        total_cents=sale.total_cents,
+        payment=sale.payment,
+        sold_at=sale.sold_at or sale.created_at,
+        client_ref=sale.client_ref,
+        items_json=json.dumps(snapshot, separators=(",", ":")),
+        reason=reason[:255],
+        deleted_by_id=user.id,
+    )
+    db.add(record)
+    db.delete(sale)
+    db.commit()
+    db.refresh(record)
+
+    return sale_deletion_out(record, deleted_by_name)
 
 
 @router.get("/sales/export.csv", summary="Download recorded sales as CSV")

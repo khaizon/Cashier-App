@@ -1,0 +1,10 @@
+.git
+node_modules
+docs
+backend
+e2e
+.pytest_cache
+*.log
+.DS_Store
+.env
+.env.*

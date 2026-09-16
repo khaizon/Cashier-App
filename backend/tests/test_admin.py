@@ -105,6 +105,56 @@ def test_delete_category_removes_its_items(client: TestClient, auth_headers: dic
     assert [category["name"] for category in remaining] == ["Tea"]
 
 
+def test_reorder_categories_sets_menu_order(client: TestClient, auth_headers: dict[str, str], catalog):
+    categories = client.get("/api/admin/catalog", headers=auth_headers).json()
+    coffee_id, tea_id = categories[0]["id"], categories[1]["id"]
+
+    response = client.put(
+        "/api/admin/categories/order",
+        headers=auth_headers,
+        json={"ids": [tea_id, coffee_id]},
+    )
+
+    assert response.status_code == 200, response.text
+    body = response.json()
+    assert [category["name"] for category in body] == ["Tea", "Coffee"]
+    assert [category["sort_order"] for category in body] == [0, 1]
+    # The cashier-facing catalog follows the same order.
+    assert [entry["category"] for entry in client.get("/api/catalog", headers=auth_headers).json()] == [
+        "Tea",
+        "Coffee",
+    ]
+
+
+def test_reorder_requires_every_category_once(client: TestClient, auth_headers: dict[str, str], catalog):
+    ids = [category["id"] for category in client.get("/api/admin/catalog", headers=auth_headers).json()]
+
+    partial = client.put("/api/admin/categories/order", headers=auth_headers, json={"ids": [ids[0]]})
+    assert partial.status_code == 400
+    assert "every category" in partial.json()["detail"]
+
+    unknown = client.put("/api/admin/categories/order", headers=auth_headers, json={"ids": [ids[0], 9999]})
+    assert unknown.status_code == 400
+
+    duplicated = client.put("/api/admin/categories/order", headers=auth_headers, json={"ids": [ids[0], ids[0]]})
+    assert duplicated.status_code == 400
+
+
+def test_reorder_advances_the_catalog_revision(client: TestClient, auth_headers: dict[str, str], catalog):
+    before = client.get("/api/catalog/revision", headers=auth_headers).json()["revision"]
+    ids = [category["id"] for category in client.get("/api/admin/catalog", headers=auth_headers).json()]
+
+    assert client.put(
+        "/api/admin/categories/order", headers=auth_headers, json={"ids": list(reversed(ids))}
+    ).status_code == 200
+
+    assert client.get("/api/catalog/revision", headers=auth_headers).json()["revision"] > before
+
+
+def test_reorder_requires_authentication(client: TestClient):
+    assert client.put("/api/admin/categories/order", json={"ids": [1]}).status_code == 401
+
+
 # ------------------------------------------------------------------------- items
 
 

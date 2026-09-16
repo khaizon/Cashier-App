@@ -1,7 +1,14 @@
-import { FC, useCallback, useEffect, useState } from 'react';
+import { FC, useCallback, useEffect, useRef, useState } from 'react';
 
 import './Cms.css';
-import { AdminCategory, AdminItem, ApiError, createCategory, fetchAdminCatalog } from '../../api/client';
+import {
+  AdminCategory,
+  AdminItem,
+  ApiError,
+  createCategory,
+  fetchAdminCatalog,
+  reorderCategories,
+} from '../../api/client';
 import CategoryCard from './CategoryCard';
 
 type CmsProps = {
@@ -30,6 +37,10 @@ const Cms: FC<CmsProps> = ({ token, onExit, onUnauthorized }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [newCategory, setNewCategory] = useState('');
+  /** The category currently being dragged, or null when no drag is in flight. */
+  const [draggingId, setDraggingId] = useState<number | null>(null);
+  /** Mirror of `draggingId` for the drop handler, which may run before a re-render. */
+  const draggingIdRef = useRef<number | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -50,6 +61,16 @@ const Cms: FC<CmsProps> = ({ token, onExit, onUnauthorized }) => {
     return () => {
       cancelled = true;
     };
+  }, [token, onUnauthorized]);
+
+  /** Re-read the server's copy after a failed optimistic update. */
+  const reloadCatalog = useCallback(() => {
+    fetchAdminCatalog(token)
+      .then((result) => {
+        setCategories(result);
+        setError('');
+      })
+      .catch((err: unknown) => report(err, onUnauthorized, setError, 'Could not load the catalog.'));
   }, [token, onUnauthorized]);
 
   const replaceCategory = useCallback((updated: AdminCategory) => {
@@ -85,6 +106,76 @@ const Cms: FC<CmsProps> = ({ token, onExit, onUnauthorized }) => {
       })
       .catch((err: unknown) => report(err, onUnauthorized, setError, 'Could not create the category.'));
   };
+
+  /**
+   * Persist a reordered list.
+   *
+   * The list is shown immediately and only replaced once the server confirms,
+   * so dragging feels instant. If the save fails the local guess may now
+   * disagree with the stored order, so the server's copy is re-read.
+   */
+  const saveOrder = useCallback(
+    (ordered: AdminCategory[]) => {
+      reorderCategories(token, ordered.map((category) => category.id))
+        .then((saved) => {
+          setCategories(saved);
+          setError('');
+        })
+        .catch((err: unknown) => {
+          report(err, onUnauthorized, setError, 'Could not save the category order.');
+          reloadCatalog();
+        });
+    },
+    [token, onUnauthorized, reloadCatalog],
+  );
+
+  /** Move a category one slot earlier (-1) or later (+1). */
+  const moveCategory = useCallback(
+    (categoryId: number, delta: -1 | 1) => {
+      const index = categories.findIndex((entry) => entry.id === categoryId);
+      const target = index + delta;
+      if (index < 0 || target < 0 || target >= categories.length) return;
+
+      const next = [...categories];
+      const [moved] = next.splice(index, 1);
+      next.splice(target, 0, moved);
+      setCategories(next);
+      saveOrder(next);
+    },
+    [categories, saveOrder],
+  );
+
+  const beginDrag = useCallback((categoryId: number) => {
+    draggingIdRef.current = categoryId;
+    setDraggingId(categoryId);
+  }, []);
+
+  const endDrag = useCallback(() => {
+    draggingIdRef.current = null;
+    setDraggingId(null);
+  }, []);
+
+  /** Drop the dragged category into the slot of the one it was released over. */
+  const dropCategory = useCallback(
+    (targetId: number) => {
+      // Read the ref rather than state: drop can arrive before React re-renders
+      // with the category that dragstart just recorded.
+      const sourceId = draggingIdRef.current;
+      endDrag();
+      if (sourceId === null || sourceId === targetId) return;
+
+      const from = categories.findIndex((entry) => entry.id === sourceId);
+      const to = categories.findIndex((entry) => entry.id === targetId);
+      if (from < 0 || to < 0) return;
+
+      const next = [...categories];
+      const [moved] = next.splice(from, 1);
+      next.splice(to, 0, moved);
+      setCategories(next);
+      saveOrder(next);
+    },
+    [categories, endDrag, saveOrder],
+  );
 
   return (
     <div className="cms">
@@ -130,10 +221,17 @@ const Cms: FC<CmsProps> = ({ token, onExit, onUnauthorized }) => {
       ) : categories.length === 0 ? (
         <p className="cmsLoading">No categories yet. Add one above to get started.</p>
       ) : (
-        categories.map((category) => (
+        categories.map((category, index) => (
           <CategoryCard
             key={category.id}
             category={category}
+            position={index + 1}
+            total={categories.length}
+            dragging={draggingId === category.id}
+            onMove={moveCategory}
+            onDragStart={beginDrag}
+            onDragEnd={endDrag}
+            onDrop={dropCategory}
             token={token}
             onCategoryChanged={replaceCategory}
             onCategoryRemoved={removeCategory}

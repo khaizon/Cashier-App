@@ -80,6 +80,28 @@
   font-size: 0.9em;
 }
 
+/* Amber, not green: the sale is safe on this device but not yet in the ledger. */
+.confirmRecordQueued {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  max-width: 22rem;
+  margin-top: 0.4rem;
+  padding: 0.5rem 0.7rem;
+  border-radius: 0.4rem;
+  background-color: rgba(232, 200, 120, 0.15);
+  border: thin solid rgba(232, 200, 120, 0.5);
+  color: rgb(232, 210, 150);
+  font-size: 0.85em;
+  text-align: left;
+}
+
+.confirmRecordQueued strong {
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 0.8em;
+}
+
 .recording:hover {
   border: thin solid rgb(232, 230, 169);
   outline: none;

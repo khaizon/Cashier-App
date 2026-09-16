@@ -1,4 +1,4 @@
-import { FC, useEffect, useState } from 'react';
+import { FC, useCallback, useEffect, useState } from 'react';
 
 import './Sales.css';
 import {
@@ -7,11 +7,13 @@ import {
   PeriodTotals,
   SaleReceipt,
   SalesStats,
+  deleteSale,
   downloadSalesCsv,
   fetchRecentSales,
   fetchSalesStats,
 } from '../../api/client';
 import { formatter } from '../../shared/functions/formatter';
+import DeleteSaleDialog from './DeleteSaleDialog';
 
 type SalesProps = {
   token: string;
@@ -175,6 +177,11 @@ const Sales: FC<SalesProps> = ({ token, onUnauthorized }) => {
   const [offset, setOffset] = useState(0);
   const [error, setError] = useState('');
   const [exporting, setExporting] = useState(false);
+  /** The sale awaiting confirmation, or null when no prompt is open. */
+  const [pendingDelete, setPendingDelete] = useState<SaleReceipt | null>(null);
+  const [deleting, setDeleting] = useState(false);
+  /** Bumped after a delete so the list and the aggregates are refetched. */
+  const [reload, setReload] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
@@ -201,13 +208,42 @@ const Sales: FC<SalesProps> = ({ token, onUnauthorized }) => {
     return () => {
       cancelled = true;
     };
-  }, [token, days, offset, onUnauthorized]);
+  }, [token, days, offset, onUnauthorized, reload]);
 
   const changePeriod = (next: number) => {
     setDays(next);
     // A different window means a different result set; start from the top.
     setOffset(0);
   };
+
+  /**
+   * Perform a confirmed deletion.
+   *
+   * The reload after success matters: the aggregates on this page include the
+   * sale that just went, so leaving them stale would contradict the table.
+   */
+  const confirmDelete = useCallback(
+    (reason: string) => {
+      if (!pendingDelete) return;
+      setDeleting(true);
+      deleteSale(token, pendingDelete.id, reason)
+        .then(() => {
+          setPendingDelete(null);
+          setError('');
+          setReload((count) => count + 1);
+        })
+        .catch((err: unknown) => {
+          if (err instanceof ApiError && err.status === 401) {
+            onUnauthorized();
+            return;
+          }
+          setError(err instanceof Error ? err.message : 'Could not delete the transaction.');
+          setPendingDelete(null);
+        })
+        .finally(() => setDeleting(false));
+    },
+    [pendingDelete, token, onUnauthorized],
+  );
 
   // Derived rather than tracked: nothing has arrived yet. Toggling a `loading`
   // flag inside the effect would only cause a cascading render.
@@ -303,6 +339,9 @@ const Sales: FC<SalesProps> = ({ token, onUnauthorized }) => {
                 <th align="left">Items</th>
                 <th align="left">Payment</th>
                 <th align="right">Total</th>
+                <th align="right">
+                  <span className="salesVisuallyHidden">Actions</span>
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -323,6 +362,18 @@ const Sales: FC<SalesProps> = ({ token, onUnauthorized }) => {
                   <td align="right" className="money">
                     {formatter.format(sale.total)}
                   </td>
+                  <td align="right">
+                    {/* Opens a confirmation prompt; nothing is deleted directly. */}
+                    <button
+                      type="button"
+                      className="salesDelete"
+                      title={`Delete transaction ${sale.order_ref}`}
+                      aria-label={`Delete transaction ${sale.order_ref}`}
+                      onClick={() => setPendingDelete(sale)}
+                    >
+                      delete
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -341,6 +392,18 @@ const Sales: FC<SalesProps> = ({ token, onUnauthorized }) => {
           </button>
         </div>
       </section>
+
+      {pendingDelete && (
+        <DeleteSaleDialog
+          orderRef={pendingDelete.order_ref}
+          total={pendingDelete.total}
+          when={`${dayOf(pendingDelete.created_at)} ${timeOf(pendingDelete.created_at)}`}
+          itemSummary={pendingDelete.items.map((line) => `${line.quantity}× ${line.title}`).join(', ')}
+          busy={deleting}
+          onCancel={() => setPendingDelete(null)}
+          onConfirm={confirmDelete}
+        />
+      )}
     </div>
   );
 };

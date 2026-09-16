@@ -5,10 +5,65 @@
  * returns matches the shapes the rest of the app already uses.
  */
 
+// Runtime configuration injected by the container (chart ConfigMap). Falls back
+// to build-time VITE_API_BASE_URL, then to the local dev backend.
+type CashierRuntimeConfig = {
+  /** Base path the SPA is served under, e.g. "/" or "/Cashier-App/". */
+  basePath?: string;
+  /** Origin/base the API is called on. "/" means same-origin. */
+  apiBaseUrl?: string;
+};
+
+const runtimeConfig: CashierRuntimeConfig =
+  (typeof window !== 'undefined' ? window.__CASHIER_CONFIG__ : undefined) ?? {};
+
+/**
+ * Work out the path the SPA is served under, without a rebuild.
+ *
+ * `config.js` may omit `basePath` (the container leaves it unset), so this falls
+ * back to reading it off the built module script's own URL — Vite rewrites that
+ * tag with the base it built for. That keeps one bundle usable both at the root
+ * and under `/Cashier-App/`.
+ *
+ * Deliberately not `import.meta.env.BASE_URL`: that is fixed at build time, so
+ * it cannot adapt to how the image actually gets hosted.
+ */
+function detectBasePath(): string {
+  if (typeof document === 'undefined') return '/';
+  const moduleScript = Array.from(document.scripts).find(
+    (script) => script.type === 'module' && script.src.includes('/assets/'),
+  );
+  if (moduleScript) {
+    const index = moduleScript.src.indexOf('/assets/');
+    try {
+      return new URL(moduleScript.src.slice(0, index + 1)).pathname;
+    } catch {
+      // Fall through to the default below.
+    }
+  }
+  return '/';
+}
+
+// Normalise to a trailing-slash form ("/" or "/Cashier-App/").
+const BASE_PATH = (() => {
+  const source = runtimeConfig.basePath ?? detectBasePath();
+  const trimmed = source.replace(/^\/+/, '').replace(/\/+$/, '');
+  return trimmed ? `/${trimmed}/` : '/';
+})();
+// Prefix for site-relative assets stored in the catalog (e.g. "/maomao.png").
+const SITE_PREFIX = BASE_PATH === '/' ? '' : BASE_PATH.replace(/\/$/, '');
+
 // 127.0.0.1 rather than localhost: uvicorn binds IPv4 by default, while Node and
 // some browsers resolve `localhost` to ::1 first. Set VITE_API_BASE_URL to point
-// somewhere else.
-const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? 'http://127.0.0.1:8000').replace(/\/+$/, '');
+// somewhere else. The empty string means same-origin, which is what the
+// container uses so the ingress can route /api itself.
+const API_BASE_URL = (() => {
+  const configured =
+    runtimeConfig.apiBaseUrl === '/'
+      ? ''
+      : (runtimeConfig.apiBaseUrl ?? import.meta.env.VITE_API_BASE_URL ?? 'http://127.0.0.1:8000');
+  return configured.replace(/\/+$/, '');
+})();
 
 /**
  * Absolute URL for an image shown in an `<img>`.
@@ -23,7 +78,7 @@ export function resolveImageSrc(img: string): string {
   if (!img) return '';
   if (/^[a-z][a-z0-9+.-]*:/i.test(img) || img.startsWith('//')) return img;
   if (img.startsWith('/api/')) return `${API_BASE_URL}${img}`;
-  return img;
+  return `${SITE_PREFIX}${img}`;
 }
 
 export class ApiError extends Error {
@@ -179,6 +234,21 @@ export function deleteCategory(token: string, categoryId: number): Promise<void>
   return request<void>(`/api/admin/categories/${categoryId}`, { method: 'DELETE' }, token);
 }
 
+/**
+ * Replace the menu order of every category.
+ *
+ * Sends the complete ordered id list rather than a per-category `sort_order` so
+ * a reorder is one atomic request; the server rejects a list that does not name
+ * every category exactly once.
+ */
+export function reorderCategories(token: string, ids: number[]): Promise<AdminCategory[]> {
+  return request<AdminCategory[]>(
+    '/api/admin/categories/order',
+    { method: 'PUT', body: JSON.stringify({ ids }) },
+    token,
+  );
+}
+
 export function createItem(
   token: string,
   payload: { category_id: number; title: string; price_cents: number; image_id?: number | null },
@@ -225,8 +295,92 @@ export async function uploadItemImage(token: string, file: File, crop?: CropBox 
   return request<UploadedImage>('/api/images', { method: 'POST', body: form }, token);
 }
 
-export function recordSale(token: string, payment: Payment, items: { item_id: number; quantity: number }[]): Promise<SaleReceipt> {
-  return request<SaleReceipt>('/api/sales', { method: 'POST', body: JSON.stringify({ payment, items }) }, token);
+/**
+ * Record a sale.
+ *
+ * `clientRef` is the idempotency key and should be supplied whenever the caller
+ * might retry — a lost response is indistinguishable from a failure, so without
+ * it a retry bills the customer twice.
+ */
+export function recordSale(
+  token: string,
+  payment: Payment,
+  items: { item_id: number; quantity: number }[],
+  clientRef?: string,
+): Promise<SaleReceipt> {
+  const body: Record<string, unknown> = { payment, items };
+  if (clientRef) body.client_ref = clientRef;
+  return request<SaleReceipt>('/api/sales', { method: 'POST', body: JSON.stringify(body) }, token);
+}
+
+// -------------------------------------------------------------- offline sync
+
+export type SyncSaleLine = {
+  item_id: number;
+  title: string;
+  price_cents: number;
+  quantity: number;
+  subtotal_cents: number;
+};
+
+export type SyncSale = {
+  client_ref: string;
+  payment: Payment;
+  sold_at: string;
+  catalog_revision: number | null;
+  items: SyncSaleLine[];
+};
+
+export type SyncSaleResult = {
+  client_ref: string;
+  status: 'recorded' | 'duplicate' | 'rejected';
+  sale_id: number | null;
+  order_ref: string | null;
+  price_conflict: boolean;
+  reason: string | null;
+};
+
+export type SyncBatchResult = {
+  results: SyncSaleResult[];
+  recorded: number;
+  duplicates: number;
+  rejected: number;
+  conflicts: number;
+};
+
+/** Reconcile sales rung up offline. Idempotent per `client_ref` on the server. */
+export function syncSales(token: string, sales: SyncSale[]): Promise<SyncBatchResult> {
+  return request<SyncBatchResult>('/api/sales/sync', { method: 'POST', body: JSON.stringify({ sales }) }, token);
+}
+
+export type CatalogRevision = { revision: number };
+
+export function fetchCatalogRevision(token: string): Promise<CatalogRevision> {
+  return request<CatalogRevision>('/api/catalog/revision', {}, token);
+}
+
+/**
+ * Is the backend reachable right now?
+ *
+ * Deliberately not `navigator.onLine`: that reports whether a network interface
+ * exists, not whether the API can be reached, and it is wrong behind captive
+ * portals and VPNs — it would claim "online" while every sale fails.
+ */
+export async function probeBackend(timeoutMs = 4000): Promise<boolean> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/health`, {
+      method: 'GET',
+      cache: 'no-store',
+      signal: controller.signal,
+    });
+    return response.ok;
+  } catch {
+    return false;
+  } finally {
+    clearTimeout(timer);
+  }
 }
 
 // ------------------------------------------------------------------- reporting
@@ -274,6 +428,35 @@ export function fetchSalesStats(token: string, days: number): Promise<SalesStats
 
 export function fetchRecentSales(token: string, limit: number, offset: number): Promise<SaleReceipt[]> {
   return request<SaleReceipt[]>(`/api/sales?limit=${limit}&offset=${offset}`, {}, token);
+}
+
+export type DeletedSale = {
+  id: number;
+  sale_id: number;
+  order_ref: string;
+  total: number;
+  payment: string;
+  reason: string;
+  deleted_by: string | null;
+  deleted_at: string;
+};
+
+/**
+ * Delete a recorded sale.
+ *
+ * The server requires a reason and keeps an audit record, so this is not a
+ * silent removal — see `app/routers/sales.py`.
+ */
+export function deleteSale(token: string, saleId: number, reason: string): Promise<DeletedSale> {
+  return request<DeletedSale>(
+    `/api/sales/${saleId}`,
+    { method: 'DELETE', body: JSON.stringify({ reason }) },
+    token,
+  );
+}
+
+export function fetchDeletedSales(token: string, limit = 50): Promise<DeletedSale[]> {
+  return request<DeletedSale[]>(`/api/sales/deletions?limit=${limit}`, {}, token);
 }
 
 /**

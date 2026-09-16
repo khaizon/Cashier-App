@@ -20,7 +20,7 @@ from app.database import Base, SessionLocal, engine
 from app.models import Category, Item, User
 from app.security import hash_password
 
-ITEM_IMAGE = "/Cashier-App/maomao.png"
+ITEM_IMAGE = "/maomao.png"
 
 # Stand-in catalog so the app has something to sell. Replace it with the real
 # menu (or an importer for the old spreadsheet) when you go live.
